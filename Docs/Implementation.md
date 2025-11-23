@@ -314,12 +314,12 @@
 - [x] Implement `TeamScore` model
 
 #### 1.3 Game State Foundation
-- [ ] Create `GamePhase` enum (setup, dealing, bidding, etc.)
-- [ ] Create `RuleConfiguration` struct with all toggleable rules
-- [ ] Create comprehensive `GameState` struct
-- [ ] Implement `GameAction` enum with all possible actions
-- [ ] Set up basic TCAKit Store structure
-- [ ] Create placeholder reducer function
+- [x] Create `GamePhase` enum (setup, dealing, bidding, etc.)
+- [x] Create `RuleConfiguration` struct with all toggleable rules
+- [x] Create comprehensive `GameState` struct
+- [x] Implement `GameAction` enum with all possible actions
+- [x] Set up basic TCAKit Store structure
+- [x] Create placeholder reducer function
 
 #### 1.4 Core Business Logic
 - [ ] Implement `CardShuffler` service (Fisher-Yates algorithm)
