@@ -266,12 +266,12 @@
 **IDE:** Xcode 15.0+  
 **Package Manager:** Swift Package Manager (SPM)  
 **Version Control:** Git  
-**Testing:** XCTest + TCAKit TestStore
+**Testing:** Swift Testing + TCAKit TestStore
 
 **Documentation:**
 - [Xcode Documentation](https://developer.apple.com/documentation/xcode)
 - [Swift Package Manager](https://swift.org/package-manager/)
-- [XCTest Documentation](https://developer.apple.com/documentation/xctest)
+- [Swift Testing Documentation](https://developer.apple.com/documentation/testing)
 
 ### Additional Dependencies
 **TCAKit** - State management (SPM)
@@ -301,17 +301,17 @@
 2. File → New → Target → UI Testing Bundle (for TwentyNineUITests)
 3. Test folder structure already created in project root
 
-#### 1.2 Core Data Models
-- [ ] Implement `Card` model (rank, suit, point values)
-- [ ] Implement `Rank` enum with custom ordering (J=highest)
-- [ ] Implement `Suit` enum with symbols
-- [ ] Implement `Player` model (id, name, type, position, team)
-- [ ] Implement `PlayerType` enum (human, AI with difficulty)
-- [ ] Implement `Team` enum (northSouth, eastWest)
-- [ ] Implement `Position` enum (north, east, south, west)
-- [ ] Implement `Bid` model
-- [ ] Implement `Trick` model
-- [ ] Implement `TeamScore` model
+#### 1.2 Core Models
+- [x] Implement `Card` model (rank, suit, point values)
+- [x] Implement `Rank` enum with custom ordering (J=highest)
+- [x] Implement `Suit` enum with symbols
+- [x] Implement `Player` model (id, name, type, position, team)
+- [x] Implement `PlayerType` enum (human, AI with difficulty)
+- [x] Implement `Team` enum (northSouth, eastWest)
+- [x] Implement `Position` enum (north, east, south, west)
+- [x] Implement `Bid` model
+- [x] Implement `Trick` model
+- [x] Implement `TeamScore` model
 
 #### 1.3 Game State Foundation
 - [ ] Create `GamePhase` enum (setup, dealing, bidding, etc.)
@@ -916,8 +916,9 @@
 - [Apple Design Resources](https://developer.apple.com/design/resources/)
 
 ### Testing Resources
-- [XCTest Documentation](https://developer.apple.com/documentation/xctest)
+- [Swift Testing Documentation](https://developer.apple.com/documentation/testing)
 - [Testing in Xcode](https://developer.apple.com/videos/play/wwdc2019/413/)
+- [Meet Swift Testing (WWDC23)](https://developer.apple.com/videos/play/wwdc2023/10179/)
 - [TCAKit TestStore](https://github.com/ronstorm/tca-kit/blob/master/Docs/TestStore.md)
 
 ### Project Documentation
