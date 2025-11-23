@@ -254,7 +254,7 @@ breakpoint set --name objc_exception_throw
 - Check [UI_UX_doc.md](UI_UX_doc.md) for design specs
 
 **For Game Rules:**
-- Check [game-rule.md](../game-rule.md) for official rules
+- See game rules in [PRD.md](../PRD.md) Section 15.2
 - Check [PRD.md](../PRD.md) for feature requirements
 
 ---

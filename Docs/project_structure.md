@@ -603,7 +603,7 @@ TwentyNineTests/
 └── TestHelpers/
     ├── MockDependencies.swift          # Mock services
     ├── TestData.swift                  # Test fixtures
-    └── XCTestCase+Extensions.swift     # Test helpers
+    └── TestHelpers.swift               # Test helper functions
 ```
 
 ### TwentyNineUITests/ (UI Automation)
@@ -620,7 +620,7 @@ TwentyNineUITests/
 │   └── DynamicTypeTests.swift          # Text scaling tests
 │
 └── UITestHelpers/
-    ├── XCUIApplication+Extensions.swift
+    ├── UITestHelpers.swift             # UI test helper functions
     └── TestScreens.swift               # Page object pattern
 ```
 
