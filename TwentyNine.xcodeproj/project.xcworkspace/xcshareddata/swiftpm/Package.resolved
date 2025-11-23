@@ -1,0 +1,15 @@
+{
+  "originHash" : "69365ad5fdd7b6ebeefe5db0341e11f7087d7a28df0e16a0ee10e48bef1eacae",
+  "pins" : [
+    {
+      "identity" : "tca-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ronstorm/tca-kit",
+      "state" : {
+        "branch" : "master",
+        "revision" : "f702dc0e6f894f3f3e9387ce35a5fc8577a7dc97"
+      }
+    }
+  ],
+  "version" : 3
+}
