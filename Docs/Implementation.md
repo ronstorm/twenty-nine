@@ -322,11 +322,11 @@
 - [x] Create placeholder reducer function
 
 #### 1.4 Core Business Logic
-- [ ] Implement `CardShuffler` service (Fisher-Yates algorithm)
-- [ ] Implement `CardDealer` service (counter-clockwise distribution)
-- [ ] Implement `RuleValidator` service (move validation, bid validation)
-- [ ] Implement `ScoreCalculator` service (point counting, marriage adjustments)
-- [ ] Create unit tests for all business logic
+- [x] Implement `CardShuffler` service (Fisher-Yates algorithm)
+- [x] Implement `CardDealer` service (counter-clockwise distribution)
+- [x] Implement `RuleValidator` service (move validation, bid validation)
+- [x] Implement `ScoreCalculator` service (point counting, marriage adjustments)
+- [x] Create unit tests for all business logic
 
 **Deliverable:** Working data models and game logic foundation with tests
 

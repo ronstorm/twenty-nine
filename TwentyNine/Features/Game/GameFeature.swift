@@ -39,9 +39,9 @@ func gameFeatureReducer(
 ) -> Effect<GameFeatureAction> {
     switch action {
     case .gameAction(let gameAction):
-        // Handle the game action and wrap any returned effects
-        let effect = handleGameAction(&state.gameState, action: gameAction)
-        // For now, return .none as effects will be handled in future stages
+        // Handle the game action
+        // Effects will be properly handled in future stages when services are integrated
+        _ = handleGameAction(&state.gameState, action: gameAction)
         return .none
     }
 }
