@@ -1,0 +1,833 @@
+---
+alwaysApply: true
+description: Swift 6.2 Coding Best Practices
+---
+
+# Swift 6.2 Coding Best Practices
+
+## 🎯 Core Principles
+
+### 1. Write Safe, Concurrent Code
+Swift 6 introduces **complete data race safety** at compile time. Embrace the concurrency model.
+
+### 2. Prefer Value Types Over Reference Types
+Use `struct` and `enum` by default; use `class` only when needed (inheritance, identity).
+
+### 3. Be Explicit and Clear
+Favor clarity over brevity. Code is read more often than written.
+
+### 4. Leverage Type Safety
+Use Swift's powerful type system to catch errors at compile time.
+
+---
+
+## 🔒 Swift 6 Concurrency & Data Isolation
+
+### Sendable and Data Race Safety
+
+```swift
+// ✅ Good: Value types are implicitly Sendable
+struct Country: Sendable {
+    let name: String
+    let code: String
+}
+
+// ✅ Good: Actors for mutable shared state
+actor CountryCache {
+    private var cache: [String: Country] = [:]
+    
+    func get(_ code: String) -> Country? {
+        cache[code]
+    }
+    
+    func set(_ country: Country, for code: String) {
+        cache[code] = country
+    }
+}
+
+// ✅ Good: @MainActor for UI updates
+@MainActor
+final class CountryViewModel: ObservableObject {
+    @Published var countries: [Country] = []
+    
+    func updateCountries(_ newCountries: [Country]) {
+        // Guaranteed to run on main thread
+        self.countries = newCountries
+    }
+}
+
+// ❌ Bad: Mutable class without isolation
+class UnsafeCache {
+    var cache: [String: Country] = [:] // Data race possible!
+}
+```
+
+### Async/Await Best Practices
+
+```swift
+// ✅ Good: Use async/await consistently
+func fetchCountries() async throws -> [Country] {
+    let (data, _) = try await URLSession.shared.data(from: url)
+    return try JSONDecoder().decode([Country].self, from: data)
+}
+
+// ✅ Good: Structured concurrency with async let
+func fetchCountryDetails(code: String) async throws -> CountryDetails {
+    async let basicInfo = fetchBasicInfo(code)
+    async let population = fetchPopulation(code)
+    async let languages = fetchLanguages(code)
+    
+    return try await CountryDetails(
+        info: basicInfo,
+        population: population,
+        languages: languages
+    )
+}
+
+// ✅ Good: Task groups for dynamic concurrency
+func fetchMultipleCountries(codes: [String]) async throws -> [Country] {
+    try await withThrowingTaskGroup(of: Country.self) { group in
+        for code in codes {
+            group.addTask { try await self.fetchCountry(code) }
+        }
+        
+        var countries: [Country] = []
+        for try await country in group {
+            countries.append(country)
+        }
+        return countries
+    }
+}
+
+// ❌ Bad: Mixing completion handlers with async/await
+func badFetch(completion: @escaping (Result<[Country], Error>) -> Void) {
+    Task {
+        // Don't mix patterns!
+    }
+}
+```
+
+### MainActor Usage
+
+```swift
+// ✅ Good: Mark entire class with @MainActor
+@MainActor
+final class CountryListViewModel: ObservableObject {
+    @Published var countries: [Country] = []
+    @Published var isLoading = false
+    
+    func loadCountries() async {
+        // All methods implicitly @MainActor
+        isLoading = true
+        defer { isLoading = false }
+        // ...
+    }
+}
+
+// ✅ Good: Mark only UI-updating methods
+final class DataProcessor {
+    func processData() async -> [Country] {
+        // Background work
+        return processedCountries
+    }
+    
+    @MainActor
+    func updateUI(with countries: [Country]) {
+        // UI updates on main thread
+    }
+}
+
+// ✅ Good: Non-isolated async functions
+nonisolated func performBackgroundWork() async -> Data {
+    // Explicitly non-isolated from actor context
+    return processedData
+}
+```
+
+### Actor Patterns
+
+```swift
+// ✅ Good: Actor for shared mutable state
+actor NetworkManager {
+    private var activeRequests: Set<String> = []
+    
+    func startRequest(_ id: String) -> Bool {
+        guard !activeRequests.contains(id) else { return false }
+        activeRequests.insert(id)
+        return true
+    }
+    
+    func endRequest(_ id: String) {
+        activeRequests.remove(id)
+    }
+}
+
+// ✅ Good: Global actor for domain-specific isolation
+@globalActor
+actor DatabaseActor {
+    static let shared = DatabaseActor()
+}
+
+@DatabaseActor
+func saveToDB(_ data: Data) {
+    // All database operations isolated
+}
+```
+
+---
+
+## 📦 Type Safety & Optionals
+
+### Optional Handling
+
+```swift
+// ✅ Good: Use optional binding
+if let country = optionalCountry {
+    print(country.name)
+}
+
+// ✅ Good: Guard for early returns
+guard let country = optionalCountry else {
+    return
+}
+
+// ✅ Good: Nil coalescing
+let countryName = country?.name ?? "Unknown"
+
+// ✅ Good: Optional chaining
+let capitalCity = country?.capital?.name
+
+// ✅ Good: Combine with if-let shorthand (Swift 5.7+)
+if let country {
+    print(country.name)
+}
+
+// ❌ Bad: Force unwrapping (avoid unless absolutely certain)
+let name = country!.name // Dangerous!
+
+// ❌ Bad: Implicitly unwrapped optionals (use sparingly)
+var country: Country! // Only for specific cases like IBOutlets
+```
+
+### Type Inference vs. Explicit Types
+
+```swift
+// ✅ Good: Use type inference for simple cases
+let name = "Switzerland"
+let count = 42
+let countries = ["US", "UK", "CA"]
+
+// ✅ Good: Be explicit when clarity helps
+let latitude: Double = 47.5
+let settings: [String: Any] = ["theme": "dark"]
+
+// ✅ Good: Explicit for empty collections
+let countries: [Country] = []
+let countryMap: [String: Country] = [:]
+
+// ❌ Bad: Unnecessary explicit types
+let name: String = "Switzerland" // Type obvious from literal
+```
+
+---
+
+## 🔤 Naming Conventions
+
+### General Rules
+
+```swift
+// ✅ Good: Clear, descriptive names
+func fetchCountryDetails(for code: String) async throws -> CountryDetail
+var isLoadingCountries: Bool
+let maximumRetryCount = 3
+
+// ✅ Good: Use verb phrases for functions/methods
+func calculateDistance()
+func updateUserInterface()
+func validateInput()
+
+// ✅ Good: Use noun phrases for properties/variables
+var userSettings: UserSettings
+let countryList: [Country]
+
+// ❌ Bad: Abbreviations and unclear names
+func fcd(c: String) async throws -> CD // What does this do?
+var lc: Bool // What is this?
+let mrc = 3 // What does mrc mean?
+```
+
+### Swift API Design Guidelines
+
+```swift
+// ✅ Good: Omit needless words
+func remove(_ element: Element) // Not removeElement
+func insert(_ element: Element, at index: Int)
+
+// ✅ Good: Name according to side effects
+func sorted() -> [Element] // No side effects - returns new
+mutating func sort() // Side effects - modifies in place
+
+// ✅ Good: Boolean properties read as assertions
+var isEmpty: Bool
+var isLoading: Bool
+var hasValidData: Bool
+
+// ✅ Good: Protocols that describe capabilities end in -able, -ible
+protocol Loadable { }
+protocol Cancellable { }
+protocol Codable { }
+```
+
+### Case Conventions
+
+```swift
+// ✅ Good: camelCase for properties, methods, variables
+var countryName: String
+func loadCountries() { }
+
+// ✅ Good: PascalCase for types (classes, structs, enums, protocols)
+struct Country { }
+class CountryService { }
+enum LoadingState { }
+protocol CountryServiceProtocol { }
+
+// ✅ Good: SCREAMING_SNAKE_CASE for static constants (optional)
+static let MAXIMUM_RETRY_COUNT = 3
+
+// ✅ Good: lowerCase for enum cases
+enum NetworkError {
+    case notConnected
+    case timeout
+    case invalidResponse
+}
+```
+
+---
+
+## 🛡️ Error Handling
+
+### Structured Error Types
+
+```swift
+// ✅ Good: Use custom error types
+enum CountryServiceError: Error {
+    case networkError(underlying: Error)
+    case invalidResponse(statusCode: Int)
+    case decodingFailed
+    case countryNotFound(code: String)
+}
+
+// ✅ Good: Adopt LocalizedError for user-facing errors
+extension CountryServiceError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .networkError:
+            return "Unable to connect to the server"
+        case .invalidResponse(let code):
+            return "Server returned error code \(code)"
+        case .decodingFailed:
+            return "Failed to process server response"
+        case .countryNotFound(let code):
+            return "Country with code '\(code)' not found"
+        }
+    }
+}
+```
+
+### Error Propagation
+
+```swift
+// ✅ Good: Let errors propagate when appropriate
+func fetchCountry(code: String) async throws -> Country {
+    let data = try await networkService.fetch(endpoint: "/country/\(code)")
+    return try JSONDecoder().decode(Country.self, from: data)
+}
+
+// ✅ Good: Handle specific errors when needed
+func loadCountries() async {
+    do {
+        countries = try await countryService.fetchCountries()
+        errorMessage = nil
+    } catch let error as CountryServiceError {
+        errorMessage = error.localizedDescription
+        logger.error("Service error: \(error)")
+    } catch {
+        errorMessage = "An unexpected error occurred"
+        logger.error("Unexpected error: \(error)")
+    }
+}
+
+// ✅ Good: Use Result type for completion-based APIs
+func fetchCountries(completion: @escaping (Result<[Country], Error>) -> Void) {
+    // Only use when async/await isn't available
+}
+
+// ❌ Bad: Swallowing errors silently
+func badLoad() async {
+    try? await fetchCountries() // Error information lost!
+}
+```
+
+---
+
+## 🏗️ Code Organization
+
+### File Structure
+
+```swift
+//  Country.swift
+//  CountryFacts
+//
+//  Created by Amit Sen on November 1, 2025.
+//  © 2025 Coding With Amit. All rights reserved.
+
+import Foundation
+
+// MARK: - Main Type
+
+/// Represents a country with basic information.
+struct Country: Identifiable, Codable, Sendable {
+    let id: String
+    let name: String
+    let code: String
+    let emoji: String
+}
+
+// MARK: - Extensions
+
+extension Country {
+    var displayName: String {
+        "\(emoji) \(name)"
+    }
+}
+
+// MARK: - Helpers
+
+extension Country: Comparable {
+    static func < (lhs: Country, rhs: Country) -> Bool {
+        lhs.name < rhs.name
+    }
+}
+```
+
+### Use MARK Comments
+
+```swift
+// ✅ Good: Organize code with MARK
+class CountryService {
+    
+    // MARK: - Properties
+    
+    private let apolloClient: ApolloClient
+    private let cache: CountryCache
+    
+    // MARK: - Initialization
+    
+    init(apolloClient: ApolloClient, cache: CountryCache) {
+        self.apolloClient = apolloClient
+        self.cache = cache
+    }
+    
+    // MARK: - Public API
+    
+    func fetchCountries() async throws -> [Country] {
+        // ...
+    }
+    
+    // MARK: - Private Helpers
+    
+    private func transformData(_ data: Data) throws -> [Country] {
+        // ...
+    }
+}
+```
+
+---
+
+## 🎨 SwiftUI Best Practices
+
+### View Composition
+
+```swift
+// ✅ Good: Small, focused views
+struct CountryRow: View {
+    let country: Country
+    
+    var body: some View {
+        HStack {
+            Text(country.emoji)
+                .font(.largeTitle)
+            
+            VStack(alignment: .leading) {
+                Text(country.name)
+                    .font(.headline)
+                Text(country.continent)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+// ✅ Good: Extract complex views
+struct CountryDetailView: View {
+    let country: Country
+    
+    var body: some View {
+        ScrollView {
+            headerSection
+            informationSection
+            funFactSection
+        }
+    }
+    
+    private var headerSection: some View {
+        VStack {
+            Text(country.emoji)
+                .font(.system(size: 100))
+            Text(country.name)
+                .font(.largeTitle)
+        }
+    }
+    
+    private var informationSection: some View {
+        // ...
+    }
+}
+
+// ❌ Bad: Massive views with all logic inline
+struct BadView: View {
+    var body: some View {
+        // 200+ lines of nested views
+    }
+}
+```
+
+### State Management
+
+```swift
+// ✅ Good: Use @State for view-local state
+struct CountrySearchView: View {
+    @State private var searchText = ""
+    @State private var isShowingFilters = false
+    
+    var body: some View {
+        // ...
+    }
+}
+
+// ✅ Good: Use @Observable for ViewModels (iOS 17+)
+@Observable
+final class CountryListViewModel {
+    var countries: [Country] = []
+    var isLoading = false
+}
+
+// ✅ Good: Inject dependencies
+struct CountryListView: View {
+    @State private var viewModel: CountryListViewModel
+    
+    init(countryService: CountryServiceProtocol) {
+        _viewModel = State(
+            wrappedValue: CountryListViewModel(countryService: countryService)
+        )
+    }
+}
+```
+
+---
+
+## ⚡ Performance Considerations
+
+### Lazy Evaluation
+
+```swift
+// ✅ Good: Use lazy for large transformations
+let processedCountries = countries.lazy
+    .filter { $0.population > 1_000_000 }
+    .map { $0.name.uppercased() }
+    .prefix(10)
+
+// ✅ Good: Lazy properties for expensive computations
+struct CountryDetails {
+    let rawData: Data
+    
+    lazy var parsedContent: [String: Any] = {
+        // Expensive parsing only when needed
+        try? JSONSerialization.jsonObject(with: rawData) as? [String: Any] ?? [:]
+    }()
+}
+```
+
+### Collection Operations
+
+```swift
+// ✅ Good: Use appropriate collection methods
+let firstLargeCountry = countries.first { $0.population > 100_000_000 }
+let hasEuropean = countries.contains { $0.continent == "Europe" }
+
+// ✅ Good: Use compactMap to filter and transform
+let countryNames: [String] = optionalCountries.compactMap { $0?.name }
+
+// ❌ Bad: Unnecessary intermediate arrays
+let names = countries.filter { $0.population > 1000 }.map { $0.name } // Better to use one pass
+```
+
+### Memory Management
+
+```swift
+// ✅ Good: Use [weak self] in closures to avoid retain cycles
+class CountryService {
+    func setupObserver() {
+        NotificationCenter.default.addObserver(
+            forName: .countryUpdated,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleUpdate(notification)
+        }
+    }
+}
+
+// ✅ Good: Use [unowned self] when self is guaranteed to exist
+class CountryViewModel {
+    private let service: CountryService
+    
+    init(service: CountryService) {
+        self.service = service
+        
+        // self will always exist as long as closure exists
+        service.onUpdate = { [unowned self] in
+            self.refresh()
+        }
+    }
+}
+
+// ✅ Good: Deinit for cleanup
+class CountryObserver {
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+}
+```
+
+---
+
+## 📝 Documentation
+
+### Doc Comments
+
+```swift
+// ✅ Good: Use /// for documentation
+/// Fetches detailed information about a specific country.
+///
+/// This method retrieves comprehensive country data including demographics,
+/// geography, and economic indicators from the remote API.
+///
+/// - Parameter code: The ISO 3166-1 alpha-2 country code (e.g., "US", "GB")
+/// - Returns: A `CountryDetail` object with complete information
+/// - Throws: `CountryServiceError` if the request fails or country is not found
+///
+/// ## Example
+/// ```swift
+/// let details = try await service.fetchCountryDetails(for: "US")
+/// print(details.name) // "United States"
+/// ```
+func fetchCountryDetails(for code: String) async throws -> CountryDetail {
+    // Implementation
+}
+
+// ✅ Good: Document complex types
+/// Represents a country's complete information including geography,
+/// demographics, and administrative details.
+///
+/// Use this type when you need full country data beyond basic information.
+/// For simple use cases, consider using the lighter `Country` type.
+struct CountryDetail: Codable, Sendable {
+    /// The country's official name
+    let name: String
+    
+    /// ISO 3166-1 alpha-2 country code
+    let code: String
+    
+    /// Total population as of last census
+    let population: Int?
+}
+```
+
+### Code Comments
+
+```swift
+// ✅ Good: Explain "why", not "what"
+// Retry up to 3 times due to API rate limiting
+let maxRetries = 3
+
+// Cache expires after 1 hour to balance freshness and performance
+let cacheExpiration: TimeInterval = 3600
+
+// ❌ Bad: Stating the obvious
+// Set the name to country's name
+self.name = country.name
+```
+
+---
+
+## 🧪 Testing Best Practices
+
+### Test Structure
+
+```swift
+// ✅ Good: Clear test structure with Given-When-Then
+final class CountryServiceTests: XCTestCase {
+    var sut: CountryService!
+    var mockClient: MockApolloClient!
+    
+    override func setUp() {
+        super.setUp()
+        mockClient = MockApolloClient()
+        sut = CountryService(apolloClient: mockClient)
+    }
+    
+    override func tearDown() {
+        sut = nil
+        mockClient = nil
+        super.tearDown()
+    }
+    
+    func testFetchCountries_WhenSuccessful_ReturnsCountries() async throws {
+        // Given
+        mockClient.mockResponse = validCountriesResponse
+        
+        // When
+        let countries = try await sut.fetchCountries()
+        
+        // Then
+        XCTAssertEqual(countries.count, 3)
+        XCTAssertEqual(countries.first?.name, "United States")
+    }
+    
+    func testFetchCountries_WhenNetworkFails_ThrowsError() async {
+        // Given
+        mockClient.shouldFail = true
+        
+        // When/Then
+        await XCTAssertThrowsError(try await sut.fetchCountries())
+    }
+}
+```
+
+---
+
+## ✨ Modern Swift Features
+
+### If/Switch Expressions (Swift 5.9+)
+
+```swift
+// ✅ Good: Use if/switch as expressions
+let statusMessage = if isLoading {
+    "Loading..."
+} else if countries.isEmpty {
+    "No countries found"
+} else {
+    "\(countries.count) countries"
+}
+
+let color = switch priority {
+    case .high: .red
+    case .medium: .orange
+    case .low: .green
+}
+```
+
+### Parameter Packs (Swift 5.9+)
+
+```swift
+// ✅ Good: Generics for multiple types
+func combine<each T>(_ value: repeat each T) -> (repeat each T) {
+    return (repeat each value)
+}
+```
+
+### Macros (Swift 5.9+)
+
+```swift
+// ✅ Good: Use built-in macros
+@Observable
+final class CountryViewModel {
+    var countries: [Country] = []
+}
+```
+
+---
+
+## 🚫 Anti-Patterns to Avoid
+
+### Don't Use Stringly-Typed Code
+
+```swift
+// ❌ Bad: String-based keys
+let name = userInfo["name"] as? String
+
+// ✅ Good: Type-safe keys
+struct UserInfo {
+    let name: String
+}
+```
+
+### Don't Use Force Unwrapping
+
+```swift
+// ❌ Bad: Force unwrapping
+let country = countries.first!
+
+// ✅ Good: Safe unwrapping
+guard let country = countries.first else { return }
+```
+
+### Don't Ignore Errors
+
+```swift
+// ❌ Bad: Silent failures
+try? fetchCountries()
+
+// ✅ Good: Handle errors
+do {
+    try await fetchCountries()
+} catch {
+    logger.error("Failed to fetch: \(error)")
+}
+```
+
+### Don't Use Massive View Controllers/ViewModels
+
+```swift
+// ❌ Bad: 1000+ line ViewModels
+// ✅ Good: Break into smaller, focused components
+```
+
+---
+
+## 🔑 Key Takeaways
+
+1. **Embrace Swift 6 concurrency** - Use async/await, actors, and @MainActor
+2. **Favor value types** - Use structs by default
+3. **Be explicit about optionals** - Avoid force unwrapping
+4. **Write testable code** - Use protocols and dependency injection
+5. **Document complex logic** - Help future developers (including yourself)
+6. **Follow naming conventions** - Clear, descriptive names
+7. **Handle errors properly** - Don't ignore them
+8. **Keep views small** - Extract and compose
+9. **Leverage type safety** - Let the compiler help you
+10. **Write readable code** - Clarity over cleverness
+
+---
+
+## 📚 Resources
+
+- [Swift.org Documentation](https://swift.org/documentation/)
+- [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/)
+- [Swift Evolution](https://github.com/apple/swift-evolution)
+- [Swift Concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html)
+- [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui/)
+
+
