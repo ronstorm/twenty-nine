@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ronstorm/tca-kit",
       "state" : {
-        "branch" : "master",
-        "revision" : "f702dc0e6f894f3f3e9387ce35a5fc8577a7dc97"
+        "revision" : "b69e1b096324fdcba221acc0c1cb4294440bfdb2",
+        "version" : "1.0.0"
       }
     }
   ],

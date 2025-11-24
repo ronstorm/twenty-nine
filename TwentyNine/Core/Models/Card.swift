@@ -12,7 +12,7 @@ import Foundation
 /// A card consists of a rank and suit. Cards are identifiable and can be
 /// compared for equality and hashing. Cards are also sendable for use in
 /// concurrent contexts.
-struct Card: Identifiable, Equatable, Hashable, Codable, Sendable {
+struct Card: Identifiable, Codable, Sendable {
     let id: UUID
     let rank: Rank
     let suit: Suit
@@ -52,6 +52,22 @@ struct Card: Identifiable, Equatable, Hashable, Codable, Sendable {
     /// Full description of the card (e.g., "Jack of Spades").
     var fullDescription: String {
         "\(rank.displayName) of \(suit.displayName)"
+    }
+}
+
+extension Card: Equatable {
+    /// Compares cards by rank and suit only (ignoring UUID).
+    /// Two cards are equal if they have the same rank and suit.
+    static func == (lhs: Card, rhs: Card) -> Bool {
+        lhs.rank == rhs.rank && lhs.suit == rhs.suit
+    }
+}
+
+extension Card: Hashable {
+    /// Hash based on rank and suit only (ignoring UUID).
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(rank)
+        hasher.combine(suit)
     }
 }
 
