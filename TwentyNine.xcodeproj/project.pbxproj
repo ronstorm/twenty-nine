@@ -6,14 +6,35 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		427CF8632ED3DA110047F984 /* TCAKit in Frameworks */ = {isa = PBXBuildFile; productRef = 427CF8622ED3DA110047F984 /* TCAKit */; };
+		427CF8662ED3DA480047F984 /* TCAKit in Frameworks */ = {isa = PBXBuildFile; productRef = 427CF8652ED3DA480047F984 /* TCAKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		427CF63A2ED3D3270047F984 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 427CF5A72ED1BA670047F984 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 427CF5AE2ED1BA670047F984;
+			remoteInfo = TwentyNine;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		427CF5AF2ED1BA670047F984 /* TwentyNine.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TwentyNine.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		427CF6362ED3D3270047F984 /* TwentyNineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TwentyNineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		427CF5B12ED1BA670047F984 /* TwentyNine */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TwentyNine;
+			sourceTree = "<group>";
+		};
+		427CF6372ED3D3270047F984 /* TwentyNineTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TwentyNineTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +44,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				427CF8632ED3DA110047F984 /* TCAKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		427CF6332ED3D3270047F984 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				427CF8662ED3DA480047F984 /* TCAKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +63,8 @@
 			isa = PBXGroup;
 			children = (
 				427CF5B12ED1BA670047F984 /* TwentyNine */,
+				427CF6372ED3D3270047F984 /* TwentyNineTests */,
+				427CF8642ED3DA480047F984 /* Frameworks */,
 				427CF5B02ED1BA670047F984 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,8 +73,16 @@
 			isa = PBXGroup;
 			children = (
 				427CF5AF2ED1BA670047F984 /* TwentyNine.app */,
+				427CF6362ED3D3270047F984 /* TwentyNineTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		427CF8642ED3DA480047F984 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,10 +105,35 @@
 			);
 			name = TwentyNine;
 			packageProductDependencies = (
+				427CF8622ED3DA110047F984 /* TCAKit */,
 			);
 			productName = TwentyNine;
 			productReference = 427CF5AF2ED1BA670047F984 /* TwentyNine.app */;
 			productType = "com.apple.product-type.application";
+		};
+		427CF6352ED3D3270047F984 /* TwentyNineTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 427CF63E2ED3D3270047F984 /* Build configuration list for PBXNativeTarget "TwentyNineTests" */;
+			buildPhases = (
+				427CF6322ED3D3270047F984 /* Sources */,
+				427CF6332ED3D3270047F984 /* Frameworks */,
+				427CF6342ED3D3270047F984 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				427CF63B2ED3D3270047F984 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				427CF6372ED3D3270047F984 /* TwentyNineTests */,
+			);
+			name = TwentyNineTests;
+			packageProductDependencies = (
+				427CF8652ED3DA480047F984 /* TCAKit */,
+			);
+			productName = TwentyNineTests;
+			productReference = 427CF6362ED3D3270047F984 /* TwentyNineTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -83,6 +148,10 @@
 					427CF5AE2ED1BA670047F984 = {
 						CreatedOnToolsVersion = 26.1;
 					};
+					427CF6352ED3D3270047F984 = {
+						CreatedOnToolsVersion = 26.1;
+						TestTargetID = 427CF5AE2ED1BA670047F984;
+					};
 				};
 			};
 			buildConfigurationList = 427CF5AA2ED1BA670047F984 /* Build configuration list for PBXProject "TwentyNine" */;
@@ -94,18 +163,29 @@
 			);
 			mainGroup = 427CF5A62ED1BA670047F984;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 427CF5B02ED1BA670047F984 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				427CF5AE2ED1BA670047F984 /* TwentyNine */,
+				427CF6352ED3D3270047F984 /* TwentyNineTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		427CF5AD2ED1BA670047F984 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		427CF6342ED3D3270047F984 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +202,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		427CF6322ED3D3270047F984 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		427CF63B2ED3D3270047F984 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 427CF5AE2ED1BA670047F984 /* TwentyNine */;
+			targetProxy = 427CF63A2ED3D3270047F984 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		427CF5B82ED1BA680047F984 /* Debug */ = {
@@ -263,24 +358,24 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.coding-with-amit.twenty-nine";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx appletvos appletvsimulator xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.2;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 26.1;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Debug;
 		};
@@ -306,24 +401,78 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.coding-with-amit.twenty-nine";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx appletvos appletvsimulator xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.2;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 26.1;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
+		427CF63C2ED3D3270047F984 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4EVUT3M4J2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.coding-with-amit.TwentyNineTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx appletvos appletvsimulator xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.2;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TwentyNine.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TwentyNine";
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
+		};
+		427CF63D2ED3D3270047F984 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4EVUT3M4J2;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.coding-with-amit.TwentyNineTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx appletvos appletvsimulator xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.2;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TwentyNine.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TwentyNine";
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Release;
 		};
@@ -348,7 +497,40 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		427CF63E2ED3D3270047F984 /* Build configuration list for PBXNativeTarget "TwentyNineTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				427CF63C2ED3D3270047F984 /* Debug */,
+				427CF63D2ED3D3270047F984 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ronstorm/tca-kit";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		427CF8622ED3DA110047F984 /* TCAKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */;
+			productName = TCAKit;
+		};
+		427CF8652ED3DA480047F984 /* TCAKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */;
+			productName = TCAKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 427CF5A72ED1BA670047F984 /* Project object */;
 }
