@@ -40,3 +40,17 @@ enum Suit: String, CaseIterable, Codable, Sendable {
     }
 }
 
+extension Suit: Comparable {
+    /// Orders suits by declaration order (spades < hearts < diamonds < clubs).
+    ///
+    /// Comparing `rawValue` strings would sort alphabetically instead, which
+    /// reverses this order.
+    static func < (lhs: Suit, rhs: Suit) -> Bool {
+        sortIndex(of: lhs) < sortIndex(of: rhs)
+    }
+
+    private static func sortIndex(of suit: Suit) -> Int {
+        allCases.firstIndex(of: suit) ?? 0
+    }
+}
+

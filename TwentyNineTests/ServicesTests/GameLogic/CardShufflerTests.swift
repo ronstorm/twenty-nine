@@ -31,8 +31,7 @@ struct CardShufflerTests {
         }
         
         // Check each rank appears 4 times
-        let ranks: [Rank] = [.seven, .eight, .queen, .king, .ten, .ace, .nine, .jack]
-        for rank in ranks {
+        for rank in Rank.allCases {
             let rankCards = deck.filter { $0.rank == rank }
             #expect(rankCards.count == 4)
         }
@@ -40,26 +39,20 @@ struct CardShufflerTests {
     
     @Test("Shuffle changes card order")
     func testShuffleChangesOrder() {
+        var generator = SeededRandomNumberGenerator(seed: 29)
         let originalDeck = shuffler.createStandardDeck()
-        let shuffledDeck = shuffler.shuffle(originalDeck)
+        let shuffledDeck = shuffler.shuffle(originalDeck, using: &generator)
         
-        // Very unlikely that shuffle produces same order (1 in 32! chance)
-        // But possible, so we'll check multiple times
-        var differentOrder = false
-        for i in 0..<originalDeck.count {
-            if originalDeck[i].id != shuffledDeck[i].id {
-                differentOrder = true
-                break
-            }
-        }
+        #expect(shuffledDeck != originalDeck)
+    }
+    
+    @Test("Shuffle with the same seed is reproducible")
+    func testShuffleIsReproducibleWithSeed() {
+        let deck = shuffler.createStandardDeck()
+        var first = SeededRandomNumberGenerator(seed: 42)
+        var second = SeededRandomNumberGenerator(seed: 42)
         
-        // If same order, shuffle again (should be different)
-        if !differentOrder {
-            let reshuffled = shuffler.shuffle(originalDeck)
-            differentOrder = originalDeck[0].id != reshuffled[0].id
-        }
-        
-        #expect(differentOrder)
+        #expect(shuffler.shuffle(deck, using: &first) == shuffler.shuffle(deck, using: &second))
     }
     
     @Test("Shuffle preserves all cards")
@@ -69,11 +62,7 @@ struct CardShufflerTests {
         
         #expect(shuffledDeck.count == originalDeck.count)
         
-        // Check all cards are present (by rank and suit combination)
-        let originalCardSet = Set(originalDeck.map { "\($0.rank.displayName)\($0.suit.symbol)" })
-        let shuffledCardSet = Set(shuffledDeck.map { "\($0.rank.displayName)\($0.suit.symbol)" })
-        
-        #expect(originalCardSet == shuffledCardSet)
+        #expect(Set(originalDeck) == Set(shuffledDeck))
     }
 }
 

@@ -16,8 +16,7 @@ struct Player: Identifiable, Equatable, Codable, Sendable {
     let name: String
     let type: PlayerType
     let position: Position
-    let team: Team
-    
+
     /// Creates a new player.
     /// - Parameters:
     ///   - id: Unique identifier for the player
@@ -29,9 +28,16 @@ struct Player: Identifiable, Equatable, Codable, Sendable {
         self.name = name
         self.type = type
         self.position = position
-        self.team = Team.team(for: position)
     }
-    
+
+    /// The team this player belongs to, derived from their seat.
+    ///
+    /// Computed rather than stored so it can never disagree with `position`
+    /// (e.g., after decoding a hand-edited save file).
+    var team: Team {
+        Team.team(for: position)
+    }
+
     /// Whether this player is controlled by AI.
     var isAI: Bool {
         type.isAI

@@ -2,8 +2,8 @@
 //  ContentView.swift
 //  TwentyNine
 //
-//  Created by Amit Sen on 22.11.25.
-//
+//  Created by Amit Sen on November 22, 2025.
+//  © 2025 Coding With Amit. All rights reserved.
 
 import SwiftUI
 

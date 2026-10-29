@@ -12,6 +12,9 @@ import Foundation
 /// Teams track their game points (using red/black 6s), tricks won,
 /// card points collected, and any bonuses (like marriage).
 struct TeamScore: Equatable, Codable, Sendable {
+    /// Game points needed to win (+6) or lose (-6) the game.
+    static let gameEndThreshold = 6
+    
     /// The team this score belongs to.
     let team: Team
     
@@ -56,12 +59,12 @@ struct TeamScore: Equatable, Codable, Sendable {
     
     /// Whether the team has won (reached +6 game points).
     var hasWon: Bool {
-        gamePoints >= 6
+        gamePoints >= Self.gameEndThreshold
     }
     
     /// Whether the team has lost (reached -6 game points).
     var hasLost: Bool {
-        gamePoints <= -6
+        gamePoints <= -Self.gameEndThreshold
     }
     
     /// Number of red 6s (positive game points).

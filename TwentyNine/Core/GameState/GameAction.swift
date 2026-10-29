@@ -40,13 +40,13 @@ indirect enum GameAction: Equatable, Sendable {
     // MARK: - Card Playing
     
     /// Select a card (for UI highlighting).
-    case selectCard(cardId: UUID)
+    case selectCard(cardId: Card.ID)
     
     /// Deselect all cards.
     case deselectCards
     
     /// Play a card from hand.
-    case playCard(cardId: UUID, playerPosition: Position)
+    case playCard(cardId: Card.ID, playerPosition: Position)
     
     /// Request to reveal the trump suit.
     case requestTrumpReveal(playerPosition: Position)
@@ -96,8 +96,8 @@ indirect enum GameAction: Equatable, Sendable {
     
     // MARK: - Rules
     
-    /// Toggle a rule setting.
-    case toggleRule(keyPath: String, enabled: Bool)
+    /// Enable or disable a single rule.
+    case toggleRule(GameRule, enabled: Bool)
     
     /// Apply a rule preset.
     case applyRulePreset(preset: RulePreset)
