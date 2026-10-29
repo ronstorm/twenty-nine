@@ -6,11 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		427CF8632ED3DA110047F984 /* TCAKit in Frameworks */ = {isa = PBXBuildFile; productRef = 427CF8622ED3DA110047F984 /* TCAKit */; };
-		427CF8662ED3DA480047F984 /* TCAKit in Frameworks */ = {isa = PBXBuildFile; productRef = 427CF8652ED3DA480047F984 /* TCAKit */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		427CF63A2ED3D3270047F984 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -44,7 +39,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				427CF8632ED3DA110047F984 /* TCAKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -52,7 +46,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				427CF8662ED3DA480047F984 /* TCAKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,9 +97,6 @@
 				427CF5B12ED1BA670047F984 /* TwentyNine */,
 			);
 			name = TwentyNine;
-			packageProductDependencies = (
-				427CF8622ED3DA110047F984 /* TCAKit */,
-			);
 			productName = TwentyNine;
 			productReference = 427CF5AF2ED1BA670047F984 /* TwentyNine.app */;
 			productType = "com.apple.product-type.application";
@@ -128,9 +118,6 @@
 				427CF6372ED3D3270047F984 /* TwentyNineTests */,
 			);
 			name = TwentyNineTests;
-			packageProductDependencies = (
-				427CF8652ED3DA480047F984 /* TCAKit */,
-			);
 			productName = TwentyNineTests;
 			productReference = 427CF6362ED3D3270047F984 /* TwentyNineTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -163,9 +150,6 @@
 			);
 			mainGroup = 427CF5A62ED1BA670047F984;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */,
-			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 427CF5B02ED1BA670047F984 /* Products */;
 			projectDirPath = "";
@@ -507,30 +491,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ronstorm/tca-kit";
-			requirement = {
-				kind = exactVersion;
-				version = 1.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		427CF8622ED3DA110047F984 /* TCAKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */;
-			productName = TCAKit;
-		};
-		427CF8652ED3DA480047F984 /* TCAKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 427CF8612ED3DA110047F984 /* XCRemoteSwiftPackageReference "tca-kit" */;
-			productName = TCAKit;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 427CF5A72ED1BA670047F984 /* Project object */;
 }

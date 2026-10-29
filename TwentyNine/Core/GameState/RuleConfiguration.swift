@@ -127,6 +127,15 @@ extension RuleConfiguration {
     )
 }
 
+/// Rule preset options for quick configuration.
+enum RulePreset: String, CaseIterable, Codable, Sendable {
+    case standard
+    case bangladeshClassic
+    case advanced
+    case beginner
+    case custom
+}
+
 extension RulePreset {
     /// The rule configuration this preset applies, or nil for `.custom`
     /// (which keeps whatever the player has configured).

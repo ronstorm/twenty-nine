@@ -9,8 +9,10 @@ import Foundation
 
 /// Comprehensive game state for the TwentyNine card game.
 ///
-/// This struct contains all state information needed to represent a game in progress,
-/// including players, cards, bidding, tricks, scoring, and UI state.
+/// This struct contains all domain state needed to represent a game in progress:
+/// players, cards, bidding, tricks, and scoring. It is a plain value type with no
+/// UI concerns, so it can be saved, restored, and tested on its own. Presentation
+/// state (selection, errors, busy flags) lives in `GameViewModel`.
 struct GameState: Equatable, Codable, Sendable {
     // MARK: - Players
     
@@ -102,17 +104,6 @@ struct GameState: Equatable, Codable, Sendable {
     /// Score for East-West team.
     var eastWestScore: TeamScore
     
-    // MARK: - UI State
-    
-    /// Currently selected cards (for card selection UI).
-    var selectedCards: Set<Card.ID>
-    
-    /// Whether the game is currently processing an action (prevents double-taps).
-    var isProcessing: Bool
-    
-    /// Error message to display, if any.
-    var errorMessage: String?
-    
     // MARK: - Initialization
     
     /// Creates a new game state with default values.
@@ -140,10 +131,7 @@ struct GameState: Equatable, Codable, Sendable {
         isReDoubled: Bool = false,
         ruleConfiguration: RuleConfiguration = RuleConfiguration(),
         northSouthScore: TeamScore = TeamScore(team: .northSouth),
-        eastWestScore: TeamScore = TeamScore(team: .eastWest),
-        selectedCards: Set<Card.ID> = [],
-        isProcessing: Bool = false,
-        errorMessage: String? = nil
+        eastWestScore: TeamScore = TeamScore(team: .eastWest)
     ) {
         self.players = players
         self.currentPlayerIndex = currentPlayerIndex
@@ -169,9 +157,6 @@ struct GameState: Equatable, Codable, Sendable {
         self.ruleConfiguration = ruleConfiguration
         self.northSouthScore = northSouthScore
         self.eastWestScore = eastWestScore
-        self.selectedCards = selectedCards
-        self.isProcessing = isProcessing
-        self.errorMessage = errorMessage
     }
     
     // MARK: - Computed Properties
