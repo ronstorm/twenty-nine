@@ -69,7 +69,7 @@ How to avoid this bug in the future.
 
 ### 🔴 Open Bugs
 
-### [BUG-005] Trump is forced on every player after it's revealed
+### [BUG-004] Trump is forced on every player after it's revealed
 
 **Status:** 🔴 Open  
 **Priority:** High  
@@ -84,7 +84,7 @@ Planned for Stage 2.5: pass whether the current player just requested the reveal
 
 ---
 
-### [BUG-006] "Match a previous bid" rule is ambiguous
+### [BUG-005] "Match a previous bid" rule is ambiguous
 
 **Status:** 🔴 Open  
 **Priority:** Medium  
@@ -146,38 +146,19 @@ Keep one source of truth per value; parameterized tests cover ±6, ±7, ±8.
 
 ---
 
-### [BUG-003] Reducer silently dropped all effects
+### [BUG-003] Card identity changed on every creation
 
 **Status:** 🟢 Resolved  
 **Priority:** Medium  
 **Discovered:** 2026-10-29  
 **Resolved:** 2026-10-29  
-**Affected Components:** `GameFeature.swift`
-
-**Description:**
-`gameFeatureReducer` discarded the `Effect<GameAction>` returned by `handleGameAction` (`_ = ...`) and always returned `.none`. Any future effect (AI turns, persistence) would never run.
-
-**Solution:**
-The child effect is re-wrapped as `Effect<GameFeatureAction>` so produced actions flow back into the reducer.
-
-**Note:**
-TCAKit 1.0.0 doesn't expose an `Effect.map`, so cancellation IDs on child effects aren't carried over. Revisit when effects with cancellation are added.
-
----
-
-### [BUG-004] Card identity changed on every creation
-
-**Status:** 🟢 Resolved  
-**Priority:** Medium  
-**Discovered:** 2026-10-29  
-**Resolved:** 2026-10-29  
-**Affected Components:** `Card`, `GameAction`, `GameState`
+**Affected Components:** `Card`, `GameState`
 
 **Description:**
 `Card.id` was a random `UUID` while `==`/`hash` ignored it, so two equal cards had different IDs. This made selection by ID (`Set<UUID>`) and tests non-deterministic. `fullDescription` also returned "J of Spades" instead of the documented "Jack of Spades".
 
 **Solution:**
-`Card.id` is derived from rank and suit (each combination is unique in the deck), and Equatable/Hashable are synthesized. Actions and state use `Card.ID`. Added `Rank.name` for spoken names.
+`Card.id` is derived from rank and suit (each combination is unique in the deck), and Equatable/Hashable are synthesized. Card selection uses `Card.ID`. Added `Rank.name` for spoken names.
 
 ---
 
@@ -187,15 +168,16 @@ TCAKit 1.0.0 doesn't expose an `Effect.map`, so cancellation IDs on child effect
 
 This section will be populated as patterns emerge during development.
 
-### TCAKit & State Management
+### MVVM & State Management
 
-*Will be populated with TCA-specific issues*
+*Will be populated with MVVM- and navigation-specific issues*
 
 **Common Patterns:**
-- State mutations outside reducers
-- Improper effect handling
-- Dependency injection issues
-- Testing with TestStore
+- State mutated from views instead of through view model intents
+- View model created inside a view's `body` (state resets on every re-render; let the coordinator own it)
+- Views not updating (type missing `@Observable`, or state marked `@ObservationIgnored`)
+- Main-actor isolation errors when calling services from view models
+- Retain cycles between coordinator and view model callbacks (capture `[weak self]`)
 
 ---
 

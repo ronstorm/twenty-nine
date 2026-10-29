@@ -21,7 +21,7 @@
 ## Project Overview
 
 TwentyNine follows a **modular architecture** organized by feature and responsibility. The project uses:
-- **TCAKit** for state management
+- **MVVM + Coordinator** for presentation and navigation (Apple's Observation framework, no third-party dependencies)
 - **SwiftUI** for UI
 - **Core Animation, Metal, Core Graphics** for advanced graphics
 - **Swift Package Manager** for dependencies
@@ -30,7 +30,7 @@ TwentyNine follows a **modular architecture** organized by feature and responsib
 ```
 ┌─────────────────────────────────────────────┐
 │              Application Layer               │
-│         (App Entry, Root View)              │
+│   (App Entry, Coordinator, Dependencies)    │
 └─────────────────┬───────────────────────────┘
                   │
 ┌─────────────────▼───────────────────────────┐
@@ -77,7 +77,7 @@ TwentyNine/
 ├── TwentyNineTests/                 # Unit & integration tests
 │   ├── CoreTests/                   # Core model tests
 │   ├── ServicesTests/               # Service tests
-│   ├── FeaturesTests/               # Feature/reducer tests
+│   ├── FeaturesTests/               # View model & coordinator tests
 │   └── TestHelpers/                 # Test utilities
 │
 ├── TwentyNineUITests/               # UI automation tests
@@ -118,12 +118,15 @@ TwentyNine/
 ├── App/
 │   ├── TwentyNineApp.swift              # @main App entry
 │   ├── AppDelegate.swift                # App lifecycle (if needed)
-│   ├── RootView.swift                   # Root navigation container
-│   └── AppDependencies.swift            # Dependency setup
+│   ├── AppDependencies.swift            # Service container injected into view models
+│   └── Coordinator/
+│       ├── AppCoordinator.swift         # Navigation path + view model factory
+│       └── AppCoordinatorView.swift     # Root NavigationStack bound to the coordinator
 │
 ├── Features/
 │   ├── Game/                            # Main game feature
-│   │   ├── GameFeature.swift           # Game state, actions, reducer
+│   │   ├── ViewModels/
+│   │   │   └── GameViewModel.swift     # Game intents & UI state
 │   │   ├── Views/
 │   │   │   ├── GameTableView.swift     # Main game screen
 │   │   │   ├── PlayerHandView.swift    # Player card hand
@@ -131,35 +134,34 @@ TwentyNine/
 │   │   │   ├── BiddingPanelView.swift  # Bidding UI
 │   │   │   ├── TrumpSelectionView.swift # Trump selection
 │   │   │   └── ScoreBoardView.swift    # Score display
-│   │   ├── Components/
-│   │   │   ├── CardView.swift          # Individual card
-│   │   │   ├── PlayerPositionView.swift # Player position indicator
-│   │   │   └── TrickCounterView.swift  # Trick counter
-│   │   └── GameFeatureTests.swift      # Feature tests
+│   │   └── Components/
+│   │       ├── CardView.swift          # Individual card
+│   │       ├── PlayerPositionView.swift # Player position indicator
+│   │       └── TrickCounterView.swift  # Trick counter
 │   │
 │   ├── MainMenu/                        # Main menu feature
-│   │   ├── MainMenuFeature.swift       # Menu state & logic
-│   │   ├── Views/
-│   │   │   ├── MainMenuView.swift      # Main menu screen
-│   │   │   ├── GameSetupView.swift     # New game setup
-│   │   │   └── AboutView.swift         # About screen
-│   │   └── MainMenuFeatureTests.swift
+│   │   ├── ViewModels/
+│   │   │   └── MainMenuViewModel.swift # Menu state & intents
+│   │   └── Views/
+│   │       ├── MainMenuView.swift      # Main menu screen
+│   │       ├── GameSetupView.swift     # New game setup
+│   │       └── AboutView.swift         # About screen
 │   │
 │   ├── Settings/                        # Settings feature
-│   │   ├── SettingsFeature.swift       # Settings state & logic
-│   │   ├── Views/
-│   │   │   ├── SettingsView.swift      # Settings screen
-│   │   │   ├── RuleConfigurationView.swift # Rule toggles
-│   │   │   └── AnimationSettingsView.swift # Animation prefs
-│   │   └── SettingsFeatureTests.swift
+│   │   ├── ViewModels/
+│   │   │   └── SettingsViewModel.swift # Settings state & intents
+│   │   └── Views/
+│   │       ├── SettingsView.swift      # Settings screen
+│   │       ├── RuleConfigurationView.swift # Rule toggles
+│   │       └── AnimationSettingsView.swift # Animation prefs
 │   │
 │   └── Tutorial/                        # Tutorial feature
-│       ├── TutorialFeature.swift       # Tutorial state & logic
-│       ├── Views/
-│       │   ├── TutorialView.swift      # Tutorial container
-│       │   ├── TutorialStepView.swift  # Individual step
-│       │   └── TutorialHighlightView.swift # Element highlighting
-│       └── TutorialFeatureTests.swift
+│       ├── ViewModels/
+│       │   └── TutorialViewModel.swift # Tutorial state & intents
+│       └── Views/
+│           ├── TutorialView.swift      # Tutorial container
+│           ├── TutorialStepView.swift  # Individual step
+│           └── TutorialHighlightView.swift # Element highlighting
 │
 ├── Shared/                              # Shared UI components
 │   ├── Components/
@@ -203,9 +205,7 @@ TwentyNine/
 │   │   └── TeamScore.swift             # Team score
 │   │
 │   ├── GameState/
-│   │   ├── GameState.swift             # Main game state
-│   │   ├── GameAction.swift            # All game actions
-│   │   └── GameEnvironment.swift       # Dependencies
+│   │   └── GameState.swift             # Main game state (domain only)
 │   │
 │   ├── Extensions/
 │   │   ├── Array+Extensions.swift      # Array helpers
@@ -297,8 +297,9 @@ TwentyNine/
 
 **Key Files:**
 - `TwentyNineApp.swift` - SwiftUI App entry with `@main`
-- `RootView.swift` - Root navigation and global state
-- `AppDependencies.swift` - Dependency injection setup
+- `AppDependencies.swift` - Service container injected into view models (`.live` for production, stubs in tests)
+- `Coordinator/AppCoordinator.swift` - Owns the navigation path and builds every screen's view model
+- `Coordinator/AppCoordinatorView.swift` - Root `NavigationStack` bound to the coordinator
 
 **Responsibilities:**
 - App lifecycle management
@@ -309,18 +310,21 @@ TwentyNine/
 ---
 
 ### Features Module
-**Purpose:** Self-contained feature modules following TCA patterns
+**Purpose:** Self-contained feature modules following MVVM
+
+Each feature has `Views/` and `ViewModels/`. Views render view model state and forward user input as intent calls. View models are `@Observable` and `@MainActor`, call services from `AppDependencies`, and report navigation events (start game, exit, ...) through callbacks. Only `AppCoordinator` navigates.
 
 #### Game Feature
 **Most complex feature** - Contains all game logic and UI
 
 **Structure:**
 ```
-GameFeature.swift:
-  - GameState struct
-  - GameAction enum
-  - gameReducer function
-  - Game dependencies
+ViewModels/GameViewModel.swift:
+  - Owns GameState (Core/GameState)
+  - Intent methods (bid, play card, reveal trump, ...)
+  - UI state (selection, alerts, busy flag)
+  - Calls GameLogic services via AppDependencies
+  - Reports exit to AppCoordinator via callback
 ```
 
 **Views:**
@@ -390,20 +394,19 @@ GameFeature.swift:
 **Structure:**
 ```
 Models/          # Domain models (Card, Player, etc.)
-GameState/       # TCA state management types
+GameState/       # Game state value types
 Extensions/      # Swift standard library extensions
 Utilities/       # Helper functions and constants
 ```
 
 **Key Models:**
 - `Card` - Identifiable, Equatable, Hashable card
-- `GameState` - Complete game state for TCA
-- `GameAction` - All possible actions in the game
+- `GameState` - Complete domain state of a game (Codable, no UI state)
 - `RuleConfiguration` - Toggleable game rules
 
 **Design Principles:**
 - Models are **value types** (structs) when possible
-- All models conform to `Equatable` for TCA
+- All models conform to `Equatable` for comparisons in view models and tests
 - Models are **Codable** for persistence
 - Pure data - no business logic in models
 
@@ -467,8 +470,9 @@ protocol RuleValidator {
 - **Models:** `Card.swift`, `Player.swift` (singular, noun)
 - **Views:** `GameTableView.swift`, `BiddingPanelView.swift` (descriptive + View suffix)
 - **Services:** `CardShuffler.swift`, `RuleValidator.swift` (noun or verb)
-- **Features:** `GameFeature.swift`, `MainMenuFeature.swift` (Feature suffix)
-- **Tests:** `CardTests.swift`, `GameFeatureTests.swift` (Tests suffix)
+- **View Models:** `GameViewModel.swift`, `MainMenuViewModel.swift` (ViewModel suffix)
+- **Coordinators:** `AppCoordinator.swift` (Coordinator suffix)
+- **Tests:** `CardTests.swift`, `GameViewModelTests.swift` (Tests suffix)
 - **Extensions:** `View+Extensions.swift`, `Color+Theme.swift` (Type + Extensions or purpose)
 
 ### General Rules
@@ -550,16 +554,9 @@ let package = Package(
         .tvOS(.v17),
         .visionOS(.v1)
     ],
-    dependencies: [
-        .package(url: "https://github.com/ronstorm/tca-kit.git", from: "1.0.0")
-    ],
+    dependencies: [],  // No third-party dependencies
     targets: [
-        .target(
-            name: "TwentyNine",
-            dependencies: [
-                .product(name: "TCAKit", package: "tca-kit")
-            ]
-        )
+        .target(name: "TwentyNine")
     ]
 )
 ```
@@ -596,9 +593,10 @@ TwentyNineTests/
 │       └── SettingsPersistenceTests.swift
 │
 ├── FeaturesTests/
-│   ├── GameFeatureTests.swift          # Game reducer tests
-│   ├── MainMenuFeatureTests.swift
-│   └── SettingsFeatureTests.swift
+│   ├── GameViewModelTests.swift        # Game view model tests
+│   ├── AppCoordinatorTests.swift       # Navigation tests
+│   ├── MainMenuViewModelTests.swift
+│   └── SettingsViewModelTests.swift
 │
 └── TestHelpers/
     ├── MockDependencies.swift          # Mock services
@@ -631,7 +629,7 @@ TwentyNineUITests/
 - All AI decision making
 - Score calculations
 - Move validation
-- TCA reducers (using TestStore)
+- View models and coordinator navigation (`@MainActor` Swift Testing suites)
 
 **Integration Tests:**
 - Complete game flows (deal → bid → play → score)
@@ -749,25 +747,26 @@ enum AnimationConstants {
 ### Adding a New Feature
 
 1. **Create feature folder** in `Features/`
-2. **Create Feature file** with State, Action, Reducer
+2. **Create ViewModels/** with an `@Observable`, `@MainActor` view model (state + intent methods, callbacks for navigation)
 3. **Create Views/** subfolder for UI
 4. **Create Components/** if needed for reusable parts
-5. **Create tests** in `TwentyNineTests/FeaturesTests/`
-6. **Update dependencies** if new services needed
-7. **Document** in `UI_UX_doc.md` if UI changes
+5. **Add a route** to `AppRoute`, build the view model in `AppCoordinator`, and handle the route in `AppCoordinatorView`
+6. **Create tests** in `TwentyNineTests/FeaturesTests/`
+7. **Update `AppDependencies`** if new services needed
+8. **Document** in `UI_UX_doc.md` if UI changes
 
 ### Adding a New Service
 
 1. **Define protocol** in `Services/[Category]/`
 2. **Create implementation** conforming to protocol
-3. **Register in Dependencies** extension
+3. **Add it to `AppDependencies`** (and its `.live` instance)
 4. **Create tests** with mock implementation
 5. **Document** in code comments
 
 ### Adding a New Model
 
 1. **Create model file** in `Core/Models/`
-2. **Conform to Equatable** (required for TCA)
+2. **Conform to Equatable** (for comparisons in view models and tests)
 3. **Conform to Codable** (if needs persistence)
 4. **Add tests** for model logic
 5. **Update GameState** if model is part of state

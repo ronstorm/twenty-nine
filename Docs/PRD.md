@@ -35,16 +35,16 @@ Create an authentic, visually stunning digital version of the popular South Asia
 
 ## 2. Technical Architecture
 
-### 2.1 State Management
-**Framework**: [TCAKit](https://github.com/ronstorm/tca-kit) - Lightweight TCA implementation
+### 2.1 Architecture Pattern
+**Pattern**: MVVM + Coordinator, built on Apple's [Observation](https://developer.apple.com/documentation/observation) framework
 
-**Why TCAKit?**
-- SwiftUI-first architecture
-- Built-in async/await support
-- Lightweight with no external dependencies
-- Clear separation of concerns (State, Actions, Reducers, Effects)
-- Excellent testing support with TestStore
-- Dependency injection system
+**Why MVVM + Coordinator?**
+- SwiftUI-native: `@Observable` view models drive views with no extra framework
+- No third-party dependencies
+- Clear separation of concerns (Views render, ViewModels hold state and intents, Coordinator navigates, Services hold game rules)
+- Screens stay independent: view models report intent through callbacks and never navigate themselves
+- Plain unit tests: view models and the coordinator are tested directly with Swift Testing
+- Dependency injection through initializers (`AppDependencies`)
 
 ### 2.2 UI Framework
 **Primary**: SwiftUI
@@ -91,12 +91,12 @@ Use for lightweight UI feedback:
 └──────────┬──────────────────────────┘
            │
 ┌──────────▼──────────────────────────┐
-│      TCAKit Store                   │
-│  (State Management Layer)           │
-│  • State: Game state model          │
-│  • Actions: User & system events    │
-│  • Reducers: State transitions      │
-│  • Effects: Async operations        │
+│  ViewModels + AppCoordinator        │
+│  (Presentation & Navigation Layer)  │
+│  • State: GameState + UI state      │
+│  • Intents: User & system events    │
+│  • Coordinator: Screen flow         │
+│  • async/await: AI turns, I/O       │
 └──────────┬──────────────────────────┘
            │
 ┌──────────▼──────────────────────────┐
@@ -433,9 +433,11 @@ Use for lightweight UI feedback:
 
 ---
 
-## 6. State Management with TCAKit
+## 6. State Management with MVVM + Coordinator
 
 ### 6.1 Core State Structure
+
+`GameState` is a plain `Codable` value type holding only domain state, so it can be saved, restored and tested on its own. UI state (selection, alerts, animation queue, busy flag) lives in the view model (see 6.2).
 
 ```swift
 struct GameState: Equatable {
@@ -463,16 +465,9 @@ struct GameState: Equatable {
     // Rules
     var ruleConfiguration: RuleConfiguration
     
-    // Scoring
+    // Scoring (game points, the red/black 6s, live in each TeamScore)
     var teamAScore: TeamScore
     var teamBScore: TeamScore
-    var gamePoints: [Team: Int] // Red/Black 6 counter
-    
-    // UI State
-    var selectedCards: Set<Card>
-    var animationQueue: [GameAnimation]
-    var showingAlert: AlertType?
-    var isProcessing: Bool
 }
 
 enum GamePhase: Equatable {
@@ -501,136 +496,135 @@ struct RuleConfiguration: Equatable {
 }
 ```
 
-### 6.2 Actions
+### 6.2 View Models
+
+Each screen has an `@Observable`, `@MainActor` view model. Views read its state and call its intent methods; the view model validates through services, mutates `GameState`, and reports navigation-worthy events to the coordinator through callbacks.
 
 ```swift
-enum GameAction: Equatable {
-    // Game Flow
-    case startNewGame(ruleConfig: RuleConfiguration)
-    case dealCards
-    case nextPhase
+@MainActor
+@Observable
+final class GameViewModel {
+    // Domain state
+    private(set) var state: GameState
+    
+    // UI state
+    private(set) var selectedCardIDs: Set<Card.ID> = []
+    private(set) var animationQueue: [GameAnimation] = []
+    var alert: AlertType?
+    private(set) var isProcessing = false
+    
+    private let dependencies: AppDependencies
+    private let onExit: () -> Void
+    
+    // Game flow
+    func startNewGame(with rules: RuleConfiguration)
+    func dealCards()
+    func advancePhase()
+    func exitGame()                       // calls onExit; coordinator navigates
     
     // Bidding
-    case placeBid(amount: Int)
-    case passBid
-    case selectTrump(suit: Suit)
+    func placeBid(_ amount: Int, from position: Position)
+    func passBid(from position: Position)
+    func selectTrump(_ suit: Suit, indicatorCard: Card)
     
     // Playing
-    case selectCard(Card)
-    case playCard(Card)
-    case requestTrumpReveal
-    case declareMarriage
+    func selectCard(_ id: Card.ID)
+    func playCard(_ id: Card.ID, from position: Position)
+    func requestTrumpReveal(by position: Position)
+    func declareMarriage(by position: Position)
     
     // AI
-    case aiTurn
-    case aiDecisionMade(AIDecision)
+    func performAITurn(for position: Position) async
     
     // Scoring
-    case calculateScore
-    case updateGamePoints
+    func calculateScore()
+    func updateGamePoints()
     
-    // UI
-    case showAlert(AlertType)
-    case dismissAlert
-    case toggleRuleSetting(keyPath: WritableKeyPath<RuleConfiguration, Bool>)
+    // Rules & persistence
+    func setRule(_ rule: GameRule, enabled: Bool)
+    func applyPreset(_ preset: RulePreset)
+    func saveGame()
+    func loadGame()
+}
+```
+
+**Example intent:**
+
+```swift
+func playCard(_ id: Card.ID, from position: Position) {
+    guard let card = hand(for: position).first(where: { $0.id == id }),
+          dependencies.ruleValidator.canPlayCard(card, from: hand(for: position), ...) else {
+        alert = .invalidPlay
+        return
+    }
     
-    // Animation
-    case animationCompleted(GameAnimation)
-    case processNextAnimation
+    state.currentTrick[position] = card
+    removeFromHand(card, at: position)
     
-    // System
-    case saveGameState
-    case loadGameState
+    if state.currentTrick.count == 4 {
+        completeTrick()                   // scores the trick, advances phase
+    } else if let next = nextPlayer, next.isAI {
+        Task { await performAITurn(for: next.position) }
+    }
 }
 ```
 
 ### 6.3 Dependencies
 
-```swift
-struct GameDependencies {
-    var cardShuffler: CardShuffler
-    var aiEngine: AIEngine
-    var ruleValidator: RuleValidator
-    var scoreCalculator: ScoreCalculator
-    var animationController: AnimationController
-    var persistenceService: PersistenceService
-    var soundManager: SoundManager
-}
+Services are protocols collected in one `Sendable` container and passed to view models through their initializers. The coordinator uses `.live`; tests pass stubs or seeded implementations.
 
-// Extend TCAKit Dependencies
-extension Dependencies {
-    var cardShuffler: CardShuffler {
-        get { self[CardShufflerKey.self] }
-        set { self[CardShufflerKey.self] = newValue }
-    }
+```swift
+struct AppDependencies: Sendable {
+    var cardShuffler: any CardShuffler
+    var cardDealer: any CardDealer
+    var ruleValidator: any RuleValidator
+    var scoreCalculator: any ScoreCalculator
+    var aiEngine: any AIEngine                    // Stage 3
+    var animationController: any AnimationController
+    var persistenceService: any PersistenceService
+    var soundManager: any SoundManager
     
-    var aiEngine: AIEngine {
-        get { self[AIEngineKey.self] }
-        set { self[AIEngineKey.self] = newValue }
-    }
-    
-    // ... other dependencies
+    static let live = AppDependencies(/* default implementations */)
 }
 ```
 
-### 6.4 Reducer Structure
+### 6.4 Navigation (Coordinator)
+
+`AppCoordinator` owns the navigation path and builds every view model. `AppCoordinatorView` binds a `NavigationStack` to `coordinator.path`.
 
 ```swift
-func gameReducer(
-    state: inout GameState,
-    action: GameAction,
-    dependencies: Dependencies
-) -> Effect<GameAction> {
-    switch action {
-    case .startNewGame(let config):
-        state = GameState(ruleConfiguration: config)
-        return .send(.dealCards)
-        
-    case .dealCards:
-        let shuffled = dependencies.cardShuffler.shuffle()
-        state.deck = shuffled
-        // Deal 4 cards to each player
-        state.gamePhase = .bidding
-        return .none
-        
-    case .placeBid(let amount):
-        guard dependencies.ruleValidator.isValidBid(amount, current: state.currentBid) else {
-            return .send(.showAlert(.invalidBid))
-        }
-        state.bids.append(Bid(player: state.currentPlayerIndex, amount: amount))
-        state.currentBid = amount
-        return .send(.nextPhase)
-        
-    case .playCard(let card):
-        // Validate move
-        guard dependencies.ruleValidator.canPlayCard(card, state: state) else {
-            return .send(.showAlert(.invalidPlay))
-        }
-        
-        // Play card
-        state.currentTrick[state.currentPlayerIndex] = card
-        state.playerHands[state.currentPlayerIndex]?.remove(card)
-        
-        // Check if trick complete
-        if state.currentTrick.count == 4 {
-            return .send(.calculateScore)
-        }
-        
-        return .send(.aiTurn)
-        
-    case .aiTurn:
-        return .run { send in
-            let decision = await dependencies.aiEngine.makeDecision(state: state)
-            await send(.aiDecisionMade(decision))
-        }
-        
-    // ... other cases
-        
-    default:
-        return .none
+enum AppRoute: Hashable {
+    case game
+    case settings                         // Stage 8.3
+    case tutorial                         // Stage 6
+}
+
+@MainActor
+@Observable
+final class AppCoordinator {
+    var path: [AppRoute] = []
+    private(set) var gameViewModel: GameViewModel?
+    var ruleConfiguration = RuleConfiguration()
+    
+    func startNewGame() {
+        gameViewModel = GameViewModel(
+            ruleConfiguration: ruleConfiguration,
+            dependencies: dependencies,
+            onExit: { [weak self] in self?.endGame() }
+        )
+        path.append(.game)
+    }
+    
+    func endGame() {
+        path.removeAll()                  // also releases gameViewModel
     }
 }
 ```
+
+**Rules:**
+- Views never create other screens' view models; the coordinator does.
+- View models never push or pop; they call their callbacks (`onExit`, `onStartGame`, ...).
+- One coordinator for the app until a flow needs its own (e.g., a multi-step tutorial coordinator).
 
 ---
 
@@ -894,7 +888,7 @@ struct TeamScore: Equatable {
 - AI decision logic
 - Card shuffling
 - Bid validation
-- TCAKit reducers (using TestStore)
+- View models and coordinator navigation (Swift Testing)
 
 #### Integration Tests
 - Complete game flow (setup → game over)
@@ -943,7 +937,7 @@ struct TeamScore: Equatable {
 
 ### Phase 1: Foundation (MVP Core)
 **Goal**: Playable basic game
-- [ ] Project setup + TCAKit integration
+- [ ] Project setup + MVVM/Coordinator architecture
 - [ ] Core data models
 - [ ] Basic UI layouts (main menu, game table)
 - [ ] Card rendering
@@ -1040,10 +1034,10 @@ struct TeamScore: Equatable {
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
 | Animation performance issues | High | Medium | Profile early, use Metal for heavy effects, optimize Core Animation layers |
-| TCAKit learning curve | Medium | High | Study examples, start simple, refactor as needed |
+| Game view model grows too large | Medium | Medium | Keep rules in services; split sub-view-models (bidding, trick play) when needed |
 | AI too difficult/easy | High | Medium | Extensive playtesting, adjustable difficulty parameters |
 | Complex rule interactions | High | Medium | Comprehensive unit tests, rule validation layer |
-| State management complexity | High | Medium | Strict TCAKit patterns, small reducers, clear actions |
+| State management complexity | High | Medium | One `GameState` value type, rules in services, view models as a thin intent layer |
 
 ### 13.2 Product Risks
 
@@ -1079,7 +1073,8 @@ struct TeamScore: Equatable {
 ## 15. References
 
 ### 15.1 Technical Documentation
-- [TCAKit Documentation](https://github.com/ronstorm/tca-kit)
+- [Observation Framework](https://developer.apple.com/documentation/observation)
+- [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack)
 - [Core Animation Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/CoreAnimation_guide/)
 - [Metal Programming Guide](https://developer.apple.com/metal/)
 - [Core Graphics Documentation](https://developer.apple.com/documentation/coregraphics)
@@ -1109,7 +1104,7 @@ struct TeamScore: Equatable {
 
 ### 16.2 Abbreviations
 
-- **TCA**: The Composable Architecture
+- **MVVM**: Model-View-ViewModel
 - **AI**: Artificial Intelligence
 - **UI**: User Interface
 - **UX**: User Experience
