@@ -102,13 +102,10 @@ struct GameState: Equatable, Codable, Sendable {
     /// Score for East-West team.
     var eastWestScore: TeamScore
     
-    /// Game points (red/black 6s) for each team.
-    var gamePoints: [Team: Int]
-    
     // MARK: - UI State
     
     /// Currently selected cards (for card selection UI).
-    var selectedCards: Set<UUID>
+    var selectedCards: Set<Card.ID>
     
     /// Whether the game is currently processing an action (prevents double-taps).
     var isProcessing: Bool
@@ -144,8 +141,7 @@ struct GameState: Equatable, Codable, Sendable {
         ruleConfiguration: RuleConfiguration = RuleConfiguration(),
         northSouthScore: TeamScore = TeamScore(team: .northSouth),
         eastWestScore: TeamScore = TeamScore(team: .eastWest),
-        gamePoints: [Team: Int] = [.northSouth: 0, .eastWest: 0],
-        selectedCards: Set<UUID> = [],
+        selectedCards: Set<Card.ID> = [],
         isProcessing: Bool = false,
         errorMessage: String? = nil
     ) {
@@ -173,7 +169,6 @@ struct GameState: Equatable, Codable, Sendable {
         self.ruleConfiguration = ruleConfiguration
         self.northSouthScore = northSouthScore
         self.eastWestScore = eastWestScore
-        self.gamePoints = gamePoints
         self.selectedCards = selectedCards
         self.isProcessing = isProcessing
         self.errorMessage = errorMessage
@@ -207,18 +202,17 @@ struct GameState: Equatable, Codable, Sendable {
         }
     }
     
-    /// Returns the game points for a given team.
+    /// Returns the game points (red/black 6s) for a given team.
     func gamePoints(for team: Team) -> Int {
-        gamePoints[team] ?? 0
+        score(for: team).gamePoints
     }
     
     /// Whether the game has ended (a team reached +6 or -6).
+    ///
+    /// Uses thresholds rather than exact equality because doubled or
+    /// re-doubled rounds can move game points past ±6 in a single round.
     var isGameOver: Bool {
-        gamePhase.isGameOver || 
-        gamePoints[.northSouth] == 6 || 
-        gamePoints[.northSouth] == -6 ||
-        gamePoints[.eastWest] == 6 || 
-        gamePoints[.eastWest] == -6
+        gamePhase.isGameOver || [northSouthScore, eastWestScore].contains { $0.hasWon || $0.hasLost }
     }
 }
 

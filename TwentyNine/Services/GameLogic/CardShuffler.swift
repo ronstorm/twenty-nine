@@ -11,46 +11,43 @@ import Foundation
 ///
 /// Allows for dependency injection and testing.
 protocol CardShuffler: Sendable {
-    /// Shuffles a deck of cards using the Fisher-Yates algorithm.
-    /// - Parameter deck: The deck to shuffle
+    /// Shuffles a deck of cards using the supplied random number generator.
+    ///
+    /// Pass a seeded generator to get a reproducible order (e.g., in tests or replays).
+    ///
+    /// - Parameters:
+    ///   - deck: The deck to shuffle
+    ///   - generator: The source of randomness
     /// - Returns: A new shuffled deck
-    func shuffle(_ deck: [Card]) -> [Card]
-    
+    func shuffle(_ deck: [Card], using generator: inout some RandomNumberGenerator) -> [Card]
+
     /// Creates a standard 32-card deck for TwentyNine.
     /// - Returns: An unshuffled deck of 32 cards (7, 8, Q, K, 10, A, 9, J of each suit)
     func createStandardDeck() -> [Card]
 }
 
-/// Default implementation of CardShuffler using Fisher-Yates algorithm.
-struct DefaultCardShuffler: CardShuffler {
-    /// Random number generator for shuffling.
-    private let randomGenerator: @Sendable () -> Int
-    
-    /// Creates a new card shuffler.
-    /// - Parameter randomGenerator: Function that returns random integers (defaults to system random)
-    init(randomGenerator: @escaping @Sendable () -> Int = { Int.random(in: 0..<Int.max) }) {
-        self.randomGenerator = randomGenerator
-    }
-    
-    /// Shuffles a deck of cards using the Fisher-Yates algorithm.
-    ///
-    /// The Fisher-Yates shuffle algorithm ensures each permutation is equally likely.
-    /// Time complexity: O(n) where n is the number of cards.
-    ///
+extension CardShuffler {
+    /// Shuffles a deck of cards using the system's cryptographically secure generator.
     /// - Parameter deck: The deck to shuffle
     /// - Returns: A new shuffled deck
     func shuffle(_ deck: [Card]) -> [Card] {
-        var shuffled = deck
-        
-        // Fisher-Yates shuffle algorithm
-        for i in stride(from: shuffled.count - 1, through: 1, by: -1) {
-            let j = randomGenerator() % (i + 1)
-            shuffled.swapAt(i, j)
-        }
-        
-        return shuffled
+        var generator = SystemRandomNumberGenerator()
+        return shuffle(deck, using: &generator)
     }
-    
+}
+
+/// Default implementation of CardShuffler.
+struct DefaultCardShuffler: CardShuffler {
+    /// Shuffles a deck of cards using the Fisher-Yates algorithm.
+    ///
+    /// Delegates to the standard library, whose `shuffled(using:)` is an unbiased
+    /// Fisher-Yates shuffle (each permutation is equally likely). A hand-rolled
+    /// `random() % n` version introduces modulo bias.
+    /// Time complexity: O(n) where n is the number of cards.
+    func shuffle(_ deck: [Card], using generator: inout some RandomNumberGenerator) -> [Card] {
+        deck.shuffled(using: &generator)
+    }
+
     /// Creates a standard 32-card deck for TwentyNine.
     ///
     /// The deck consists of:
@@ -60,19 +57,8 @@ struct DefaultCardShuffler: CardShuffler {
     ///
     /// - Returns: An unshuffled deck of 32 cards
     func createStandardDeck() -> [Card] {
-        var deck: [Card] = []
-        
-        // Create cards for each suit
-        for suit in Suit.allCases {
-            // Ranks used in TwentyNine: 7, 8, Q, K, 10, A, 9, J
-            let ranks: [Rank] = [.seven, .eight, .queen, .king, .ten, .ace, .nine, .jack]
-            
-            for rank in ranks {
-                deck.append(Card(rank: rank, suit: suit))
-            }
+        Suit.allCases.flatMap { suit in
+            Rank.allCases.map { rank in Card(rank: rank, suit: suit) }
         }
-        
-        return deck
     }
 }
-
