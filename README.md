@@ -1,6 +1,6 @@
 # TwentyNine
 
-A modern, cross-platform card game built with SwiftUI and The Composable Architecture (TCAKit). TwentyNine is a trick-taking card game popular in South Asia, featuring strategic bidding, trump selection, and team-based gameplay.
+A modern, cross-platform card game built with SwiftUI using MVVM with the Coordinator pattern. TwentyNine is a trick-taking card game popular in South Asia, featuring strategic bidding, trump selection, and team-based gameplay.
 
 ## 🎮 Game Overview
 
@@ -19,7 +19,7 @@ TwentyNine is a 4-player partnership card game where teams compete to win tricks
 ### Completed Features
 - ✅ Project setup with multi-platform support (iOS, iPadOS, macOS, tvOS, visionOS)
 - ✅ Core data models (`Card`, `Player`, `Team`, `Bid`, `Trick`, `TeamScore`)
-- ✅ Game state management foundation with TCAKit
+- ✅ MVVM + Coordinator architecture (`@Observable` view models, `AppCoordinator` navigation)
 - ✅ Game logic services:
   - `CardShuffler` - Fisher-Yates shuffle algorithm
   - `CardDealer` - Counter-clockwise card distribution
@@ -57,7 +57,7 @@ TwentyNine is a 4-player partnership card game where teams compete to win tricks
 
 ## 🏗️ Architecture
 
-- **State Management:** TCAKit (The Composable Architecture)
+- **Architecture:** MVVM + Coordinator (Observation framework, no third-party dependencies)
 - **UI Framework:** SwiftUI
 - **Language:** Swift 6.2 with strict concurrency
 - **Testing:** Swift Testing framework
@@ -74,7 +74,7 @@ Current test coverage:
 - ✅ Card shuffling and dealing logic
 - ✅ Rule validation (suit following, trump rules)
 - ✅ Score calculation (trick points, marriage bonuses)
-- ✅ Game state management
+- ✅ Game state, view models and coordinator navigation
 
 ## 📄 License
 

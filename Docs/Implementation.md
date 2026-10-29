@@ -67,10 +67,10 @@
 34. **Practice Mode** - Scenario-based practice (Post-MVP)
 
 #### State Management
-35. **TCAKit Integration** - Store, reducers, effects, dependencies
+35. **MVVM + Coordinator** - View models, coordinator navigation, dependency injection
 36. **Game State Model** - Comprehensive state structure
-37. **Action System** - User actions, AI actions, system actions
-38. **Effect Handling** - Async operations, animation coordination
+37. **View Model Intents** - User intents, AI turns, system events
+38. **Async Handling** - async/await in view models, animation coordination
 
 #### Data & Persistence
 39. **Game State Persistence** - Save/restore in-progress games
@@ -90,7 +90,7 @@
 49. **Unit Tests** - Game logic, rules, calculations
 50. **Integration Tests** - Full game flows, state management
 51. **UI Tests** - Navigation, interactions
-52. **TestStore Testing** - TCAKit reducer testing
+52. **View Model Testing** - View model and coordinator tests
 
 ### Feature Categorization
 
@@ -113,10 +113,10 @@
 - ✅ Marriage Rule (Feature #16)
 - ✅ Easy AI (Feature #21)
 - ✅ Single Player Mode (Feature #31)
-- ✅ TCAKit Integration (Feature #35)
+- ✅ MVVM + Coordinator (Feature #35)
 - ✅ Game State Model (Feature #36)
-- ✅ Action System (Feature #37)
-- ✅ Effect Handling (Feature #38)
+- ✅ View Model Intents (Feature #37)
+- ✅ Async Handling (Feature #38)
 
 #### Should-Have Features (MVP Polish)
 **Priority:** High - Complete the MVP experience
@@ -156,7 +156,7 @@
 - 🔷 Haptic Feedback (Feature #46)
 - 🔷 Sound Effects (Feature #47)
 - 🔷 UI Tests (Feature #51)
-- 🔷 TestStore Testing (Feature #52)
+- 🔷 View Model Testing (Feature #52)
 - 🔷 Online Multiplayer
 - 🔷 Leaderboards
 - 🔷 Achievements
@@ -168,21 +168,21 @@
 
 ## Recommended Tech Stack
 
-### State Management
-**Framework:** [TCAKit](https://github.com/ronstorm/tca-kit) v1.0.0+
+### Architecture & State Management
+**Pattern:** MVVM + Coordinator with Apple's Observation framework (`@Observable`)
 
 **Justification:**
-- Lightweight TCA implementation designed for SwiftUI
-- Built-in async/await support for modern Swift concurrency
-- Excellent dependency injection system
-- Strong testing utilities with TestStore
+- SwiftUI-native: views observe `@Observable` view models with no extra framework
 - No external dependencies
-- Perfect fit for game state management with clear action/reducer patterns
+- Clear boundaries: Views render, ViewModels hold state and intents, the Coordinator navigates, Services hold game rules
+- Built on Swift concurrency: `@MainActor` view models, async AI turns
+- Dependency injection through initializers (`AppDependencies`)
+- View models and navigation are plain Swift types, tested directly with Swift Testing
 
 **Documentation:**
-- [TCAKit GitHub](https://github.com/ronstorm/tca-kit)
-- [TCAKit Complete Documentation](https://github.com/ronstorm/tca-kit/tree/master/Docs)
-- [TCAKit Examples](https://github.com/ronstorm/tca-kit/tree/master/Examples)
+- [Observation Framework](https://developer.apple.com/documentation/observation)
+- [Managing model data in your app](https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app)
+- [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack)
 
 ### UI Framework
 **Framework:** SwiftUI
@@ -266,7 +266,7 @@
 **IDE:** Xcode 15.0+  
 **Package Manager:** Swift Package Manager (SPM)  
 **Version Control:** Git  
-**Testing:** Swift Testing + TCAKit TestStore
+**Testing:** Swift Testing
 
 **Documentation:**
 - [Xcode Documentation](https://developer.apple.com/documentation/xcode)
@@ -274,9 +274,7 @@
 - [Swift Testing Documentation](https://developer.apple.com/documentation/testing)
 
 ### Additional Dependencies
-**TCAKit** - State management (SPM)
-
-**No other external dependencies** - Keeping the app lightweight and maintainable
+**None** - State management uses Apple's Observation framework, keeping the app lightweight and maintainable
 
 ---
 
@@ -290,7 +288,7 @@
 #### 1.1 Project Setup
 - [x] Create Xcode project with multi-platform support
 - [x] Configure Swift Package Manager
-- [x] Add TCAKit dependency
+- [x] Set up MVVM + Coordinator architecture
 - [x] Set up project folder structure (see [project_structure.md](project_structure.md))
 - [x] Configure build settings and deployment targets
 - [x] Set up .gitignore and version control
@@ -317,9 +315,9 @@
 - [x] Create `GamePhase` enum (setup, dealing, bidding, etc.)
 - [x] Create `RuleConfiguration` struct with all toggleable rules
 - [x] Create comprehensive `GameState` struct
-- [x] Implement `GameAction` enum with all possible actions
-- [x] Set up basic TCAKit Store structure
-- [x] Create placeholder reducer function
+- [x] Create `GameViewModel` with intent methods for all game actions
+- [x] Set up `AppCoordinator` navigation and `AppDependencies` injection
+- [x] Create placeholder intent implementations
 
 #### 1.4 Core Business Logic
 - [x] Implement `CardShuffler` service (Fisher-Yates algorithm)
@@ -377,7 +375,7 @@
 - [ ] Handle trump selection confirmation
 
 #### 2.5 Game Flow Integration
-- [ ] Implement game phase state machine in reducer
+- [ ] Implement game phase state machine in `GameViewModel`
 - [ ] Connect dealing phase to UI
 - [ ] Connect bidding phase to UI
 - [ ] Connect trump selection to UI
@@ -409,7 +407,7 @@
 - [ ] Implement `AIDecision` model (action + reasoning)
 - [ ] Create `AIContext` for decision-making data
 - [ ] Set up AI delay system (realistic thinking time)
-- [ ] Implement AI turn handling in reducer
+- [ ] Implement AI turn handling in `GameViewModel.performAITurn(for:)`
 
 #### 3.2 Easy AI Implementation
 - [ ] Implement easy AI bidding strategy (point-card counting)
@@ -747,12 +745,12 @@
 - [ ] Write tests for move validation
 - [ ] Achieve 80%+ code coverage on business logic
 
-#### 10.2 TCAKit Reducer Testing
-- [ ] Write TestStore tests for all game actions
+#### 10.2 View Model & Coordinator Testing
+- [ ] Write tests for all `GameViewModel` intents
 - [ ] Test state transitions
-- [ ] Test effect handling
-- [ ] Test dependency injection
-- [ ] Verify action ordering
+- [ ] Test async AI turns
+- [ ] Test dependency injection with stub services
+- [ ] Verify coordinator navigation flows
 - [ ] Test error scenarios
 
 #### 10.3 Integration Testing
@@ -896,9 +894,8 @@
 ## Resource Links
 
 ### Official Documentation
-- [TCAKit GitHub Repository](https://github.com/ronstorm/tca-kit)
-- [TCAKit Complete Documentation](https://github.com/ronstorm/tca-kit/tree/master/Docs)
-- [TCAKit Examples - TodoList](https://github.com/ronstorm/tca-kit/tree/master/Examples)
+- [Observation Framework](https://developer.apple.com/documentation/observation)
+- [NavigationStack](https://developer.apple.com/documentation/swiftui/navigationstack)
 - [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui/)
 - [Core Animation Programming Guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/CoreAnimation_guide/)
 - [Metal Programming Guide](https://developer.apple.com/metal/)
@@ -919,7 +916,6 @@
 - [Swift Testing Documentation](https://developer.apple.com/documentation/testing)
 - [Testing in Xcode](https://developer.apple.com/videos/play/wwdc2019/413/)
 - [Meet Swift Testing (WWDC23)](https://developer.apple.com/videos/play/wwdc2023/10179/)
-- [TCAKit TestStore](https://github.com/ronstorm/tca-kit/blob/master/Docs/TestStore.md)
 
 ### Project Documentation
 - [PRD - Product Requirements](../PRD.md)
@@ -932,8 +928,8 @@
 ## Development Guidelines
 
 ### Code Quality Standards
-1. **Follow Swift 6.2 best practices** (see workspace rules)
-2. **Use TCA patterns strictly** - Keep reducers pure, effects for side effects
+1. **Follow Swift 6.2 best practices** (see the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/))
+2. **Keep MVVM boundaries** - Views render and forward intents, view models hold state and call services, only the coordinator navigates
 3. **Write tests first** for business logic (TDD approach)
 4. **Comment complex algorithms** - Especially AI decision logic
 5. **Use meaningful names** - Clarity over brevity
@@ -950,7 +946,7 @@
 
 ### Testing Requirements
 - **80%+ code coverage** for business logic
-- **All reducers** tested with TestStore
+- **All view models and coordinator flows** covered by unit tests
 - **Integration tests** for complete game flows
 - **Manual testing** on multiple devices and iOS versions
 
