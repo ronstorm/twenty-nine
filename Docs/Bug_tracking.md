@@ -69,7 +69,32 @@ How to avoid this bug in the future.
 
 ### 🔴 Open Bugs
 
-*No open bugs yet - Development starting soon!*
+### [BUG-005] Trump is forced on every player after it's revealed
+
+**Status:** 🔴 Open  
+**Priority:** High  
+**Discovered:** 2026-10-29  
+**Affected Components:** `RuleValidator.canPlayCard`
+
+**Description:**
+`game-rule.md` says only the player who *asks* to reveal trump must play a trump on that turn. `canPlayCard` instead forces every void player to trump for the rest of the round once `trumpRevealed` is true. The test `testMustPlayTrumpIfRevealed` encodes the current behaviour.
+
+**Solution:**
+Planned for Stage 2.5: pass whether the current player just requested the reveal (e.g., `mustPlayTrump: Bool`) instead of deriving it from `trumpRevealed`.
+
+---
+
+### [BUG-006] "Match a previous bid" rule is ambiguous
+
+**Status:** 🔴 Open  
+**Priority:** Medium  
+**Discovered:** 2026-10-29  
+**Affected Components:** `RuleValidator.isValidBid`
+
+**Description:**
+`game-rule.md`: "A player can match a previous bid if they placed it first." The validator only allows a player to match a bid *they currently hold*, which never changes the outcome. The common table rule is that the earlier bidder may match a challenger's raise to keep the bid. Needs a decision on the intended rule before Stage 2.3 bidding UI.
+
+---
 
 ---
 
@@ -83,7 +108,78 @@ How to avoid this bug in the future.
 
 ### 🟢 Closed Bugs
 
-*No resolved bugs yet - Development starting soon!*
+### [BUG-001] Game over not detected when game points jump past ±6
+
+**Status:** 🟢 Resolved  
+**Priority:** High  
+**Discovered:** 2026-10-29  
+**Resolved:** 2026-10-29  
+**Affected Components:** `GameState`
+
+**Description:**
+`GameState.isGameOver` checked `gamePoints == 6 || == -6`. A doubled (±2) or re-doubled (±4) round can move a team from e.g. +4 to +8, so the game would never end.
+
+**Root Cause:**
+Exact equality instead of a threshold, plus game points stored twice (`GameState.gamePoints` dictionary and `TeamScore.gamePoints`), so the two could disagree.
+
+**Solution:**
+Removed the duplicate dictionary; `gamePoints(for:)` reads `TeamScore.gamePoints`, and `isGameOver` uses `TeamScore.hasWon`/`hasLost` (`>=`/`<=` against `TeamScore.gameEndThreshold`).
+
+**Prevention:**
+Keep one source of truth per value; parameterized tests cover ±6, ±7, ±8.
+
+---
+
+### [BUG-002] Card suit tie-break sorted in reverse
+
+**Status:** 🟢 Resolved  
+**Priority:** Low  
+**Discovered:** 2026-10-29  
+**Resolved:** 2026-10-29  
+**Affected Components:** `Card`, `Suit`
+
+**Description:**
+`Card <` was documented as spades < hearts < diamonds < clubs but compared `suit.rawValue` strings, which sorts alphabetically (clubs < diamonds < hearts < spades).
+
+**Solution:**
+`Suit` now conforms to `Comparable` using declaration order; `Card <` compares suits directly.
+
+---
+
+### [BUG-003] Reducer silently dropped all effects
+
+**Status:** 🟢 Resolved  
+**Priority:** Medium  
+**Discovered:** 2026-10-29  
+**Resolved:** 2026-10-29  
+**Affected Components:** `GameFeature.swift`
+
+**Description:**
+`gameFeatureReducer` discarded the `Effect<GameAction>` returned by `handleGameAction` (`_ = ...`) and always returned `.none`. Any future effect (AI turns, persistence) would never run.
+
+**Solution:**
+The child effect is re-wrapped as `Effect<GameFeatureAction>` so produced actions flow back into the reducer.
+
+**Note:**
+TCAKit 1.0.0 doesn't expose an `Effect.map`, so cancellation IDs on child effects aren't carried over. Revisit when effects with cancellation are added.
+
+---
+
+### [BUG-004] Card identity changed on every creation
+
+**Status:** 🟢 Resolved  
+**Priority:** Medium  
+**Discovered:** 2026-10-29  
+**Resolved:** 2026-10-29  
+**Affected Components:** `Card`, `GameAction`, `GameState`
+
+**Description:**
+`Card.id` was a random `UUID` while `==`/`hash` ignored it, so two equal cards had different IDs. This made selection by ID (`Set<UUID>`) and tests non-deterministic. `fullDescription` also returned "J of Spades" instead of the documented "Jack of Spades".
+
+**Solution:**
+`Card.id` is derived from rank and suit (each combination is unique in the deck), and Equatable/Hashable are synthesized. Actions and state use `Card.ID`. Added `Rank.name` for spoken names.
+
+---
 
 ---
 
@@ -327,6 +423,6 @@ func dealCard(index: Int) {
 
 ---
 
-**Last Updated:** November 23, 2025  
+**Last Updated:** October 29, 2026  
 **Next Review:** After Stage 2 implementation (UI & Game Flow)
 
