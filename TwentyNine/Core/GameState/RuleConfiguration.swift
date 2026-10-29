@@ -11,68 +11,82 @@ import Foundation
 ///
 /// This struct contains all configurable rules that can be enabled or disabled
 /// to match different regional variations of the TwentyNine game.
+/// `RuleConfiguration()` gives the defaults below; the synthesized memberwise
+/// initializer lets callers override only the rules they care about.
 struct RuleConfiguration: Equatable, Codable, Sendable {
     /// Marriage (Pair) rule - K+Q of trump = ±4 points to bid.
-    var marriageEnabled: Bool = true
-    
+    var marriageEnabled = true
+
     /// Double rule - Opponents can challenge bid (±2 points).
-    var doubleEnabled: Bool = true
-    
+    var doubleEnabled = true
+
     /// Re-Double rule - Bidder can counter double (±4 points).
-    var reDoubleEnabled: Bool = true
-    
+    var reDoubleEnabled = true
+
     /// Single Hand rule - One player plays alone vs 3.
-    var singleHandEnabled: Bool = true
-    
+    var singleHandEnabled = true
+
     /// 7th Card Trump rule - Trump revealed by 7th card.
-    var seventhCardTrumpEnabled: Bool = true
-    
+    var seventhCardTrumpEnabled = true
+
     /// Joker Trump rule - Only highest card wins (no regular ranking).
-    var jokerTrumpEnabled: Bool = false
-    
+    var jokerTrumpEnabled = false
+
     /// Reverse Trump rule - 7 highest, J lowest in trump suit.
-    var reverseTrumpEnabled: Bool = false
-    
+    var reverseTrumpEnabled = false
+
     /// All Tricks Bonus rule - +1 if team wins all 8 tricks.
-    var allTricksBonusEnabled: Bool = true
-    
+    var allTricksBonusEnabled = true
+
     /// Half-Point Penalty rule - Extra penalty if < half bid won.
-    var halfPointPenaltyEnabled: Bool = false
-    
+    var halfPointPenaltyEnabled = false
+
     /// Cancel on 3 Passes rule - Game cancelled if first 3 pass.
-    var cancelOn3PassesEnabled: Bool = true
-    
+    var cancelOn3PassesEnabled = true
+
     /// Auto-show Trump rule - Reveal trump immediately.
-    var autoShowTrumpEnabled: Bool = false
-    
-    /// Creates a default rule configuration.
-    init() {}
-    
-    /// Creates a rule configuration with custom values.
-    init(
-        marriageEnabled: Bool = true,
-        doubleEnabled: Bool = true,
-        reDoubleEnabled: Bool = true,
-        singleHandEnabled: Bool = true,
-        seventhCardTrumpEnabled: Bool = true,
-        jokerTrumpEnabled: Bool = false,
-        reverseTrumpEnabled: Bool = false,
-        allTricksBonusEnabled: Bool = true,
-        halfPointPenaltyEnabled: Bool = false,
-        cancelOn3PassesEnabled: Bool = true,
-        autoShowTrumpEnabled: Bool = false
-    ) {
-        self.marriageEnabled = marriageEnabled
-        self.doubleEnabled = doubleEnabled
-        self.reDoubleEnabled = reDoubleEnabled
-        self.singleHandEnabled = singleHandEnabled
-        self.seventhCardTrumpEnabled = seventhCardTrumpEnabled
-        self.jokerTrumpEnabled = jokerTrumpEnabled
-        self.reverseTrumpEnabled = reverseTrumpEnabled
-        self.allTricksBonusEnabled = allTricksBonusEnabled
-        self.halfPointPenaltyEnabled = halfPointPenaltyEnabled
-        self.cancelOn3PassesEnabled = cancelOn3PassesEnabled
-        self.autoShowTrumpEnabled = autoShowTrumpEnabled
+    var autoShowTrumpEnabled = false
+
+    /// Reads or writes a single rule by its type-safe identifier.
+    subscript(rule: GameRule) -> Bool {
+        get { self[keyPath: rule.keyPath] }
+        set { self[keyPath: rule.keyPath] = newValue }
+    }
+}
+
+// MARK: - Game Rules
+
+/// Type-safe identifier for each toggleable rule in `RuleConfiguration`.
+///
+/// Used by actions and settings UI instead of string key paths, so a typo
+/// becomes a compile error rather than a silently ignored toggle.
+enum GameRule: String, CaseIterable, Codable, Sendable {
+    case marriage
+    case double
+    case reDouble
+    case singleHand
+    case seventhCardTrump
+    case jokerTrump
+    case reverseTrump
+    case allTricksBonus
+    case halfPointPenalty
+    case cancelOn3Passes
+    case autoShowTrump
+
+    fileprivate var keyPath: WritableKeyPath<RuleConfiguration, Bool> {
+        switch self {
+        case .marriage: \.marriageEnabled
+        case .double: \.doubleEnabled
+        case .reDouble: \.reDoubleEnabled
+        case .singleHand: \.singleHandEnabled
+        case .seventhCardTrump: \.seventhCardTrumpEnabled
+        case .jokerTrump: \.jokerTrumpEnabled
+        case .reverseTrump: \.reverseTrumpEnabled
+        case .allTricksBonus: \.allTricksBonusEnabled
+        case .halfPointPenalty: \.halfPointPenaltyEnabled
+        case .cancelOn3Passes: \.cancelOn3PassesEnabled
+        case .autoShowTrump: \.autoShowTrumpEnabled
+        }
     }
 }
 
@@ -80,71 +94,49 @@ struct RuleConfiguration: Equatable, Codable, Sendable {
 
 extension RuleConfiguration {
     /// Standard preset - Marriage only.
-    static var standard: RuleConfiguration {
-        RuleConfiguration(
-            marriageEnabled: true,
-            doubleEnabled: false,
-            reDoubleEnabled: false,
-            singleHandEnabled: false,
-            seventhCardTrumpEnabled: false,
-            jokerTrumpEnabled: false,
-            reverseTrumpEnabled: false,
-            allTricksBonusEnabled: false,
-            halfPointPenaltyEnabled: false,
-            cancelOn3PassesEnabled: true,
-            autoShowTrumpEnabled: false
-        )
-    }
-    
+    static let standard = RuleConfiguration(
+        doubleEnabled: false,
+        reDoubleEnabled: false,
+        singleHandEnabled: false,
+        seventhCardTrumpEnabled: false,
+        allTricksBonusEnabled: false
+    )
+
     /// Bangladesh Classic preset - Marriage + Double + Re-Double.
-    static var bangladeshClassic: RuleConfiguration {
-        RuleConfiguration(
-            marriageEnabled: true,
-            doubleEnabled: true,
-            reDoubleEnabled: true,
-            singleHandEnabled: false,
-            seventhCardTrumpEnabled: false,
-            jokerTrumpEnabled: false,
-            reverseTrumpEnabled: false,
-            allTricksBonusEnabled: false,
-            halfPointPenaltyEnabled: false,
-            cancelOn3PassesEnabled: true,
-            autoShowTrumpEnabled: false
-        )
-    }
-    
-    /// Advanced preset - All rules enabled.
-    static var advanced: RuleConfiguration {
-        RuleConfiguration(
-            marriageEnabled: true,
-            doubleEnabled: true,
-            reDoubleEnabled: true,
-            singleHandEnabled: true,
-            seventhCardTrumpEnabled: true,
-            jokerTrumpEnabled: true,
-            reverseTrumpEnabled: true,
-            allTricksBonusEnabled: true,
-            halfPointPenaltyEnabled: true,
-            cancelOn3PassesEnabled: true,
-            autoShowTrumpEnabled: false
-        )
-    }
-    
+    static let bangladeshClassic = RuleConfiguration(
+        singleHandEnabled: false,
+        seventhCardTrumpEnabled: false,
+        allTricksBonusEnabled: false
+    )
+
+    /// Advanced preset - All rules enabled except auto-show trump.
+    static let advanced = RuleConfiguration(
+        jokerTrumpEnabled: true,
+        reverseTrumpEnabled: true,
+        halfPointPenaltyEnabled: true
+    )
+
     /// Beginner preset - Marriage + Auto-show Trump.
-    static var beginner: RuleConfiguration {
-        RuleConfiguration(
-            marriageEnabled: true,
-            doubleEnabled: false,
-            reDoubleEnabled: false,
-            singleHandEnabled: false,
-            seventhCardTrumpEnabled: false,
-            jokerTrumpEnabled: false,
-            reverseTrumpEnabled: false,
-            allTricksBonusEnabled: false,
-            halfPointPenaltyEnabled: false,
-            cancelOn3PassesEnabled: true,
-            autoShowTrumpEnabled: true
-        )
-    }
+    static let beginner = RuleConfiguration(
+        doubleEnabled: false,
+        reDoubleEnabled: false,
+        singleHandEnabled: false,
+        seventhCardTrumpEnabled: false,
+        allTricksBonusEnabled: false,
+        autoShowTrumpEnabled: true
+    )
 }
 
+extension RulePreset {
+    /// The rule configuration this preset applies, or nil for `.custom`
+    /// (which keeps whatever the player has configured).
+    var configuration: RuleConfiguration? {
+        switch self {
+        case .standard: .standard
+        case .bangladeshClassic: .bangladeshClassic
+        case .advanced: .advanced
+        case .beginner: .beginner
+        case .custom: nil
+        }
+    }
+}

@@ -39,8 +39,7 @@ struct ScoreCalculatorTests {
                 .west: Card(rank: .ten, suit: .clubs)      // 1 point
             ],
             leadPosition: .north,
-            winnerPosition: .north,
-            totalPoints: 7
+            winnerPosition: .north
         )
         
         let points = calculator.calculateTrickPoints(trick)
@@ -58,8 +57,7 @@ struct ScoreCalculatorTests {
                     .west: Card(rank: .ten, suit: .clubs)        // 1 point
                 ],
                 leadPosition: .north,
-                winnerPosition: .north,
-                totalPoints: 5  // 3 + 0 + 1 + 1 = 5
+                winnerPosition: .north  // 3 + 0 + 1 + 1 = 5 points
             )
         ]
         

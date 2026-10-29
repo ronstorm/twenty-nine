@@ -69,12 +69,6 @@ protocol ScoreCalculator: Sendable {
 
 /// Default implementation of ScoreCalculator.
 struct DefaultScoreCalculator: ScoreCalculator {
-    /// Minimum bid amount.
-    private let minBid = 16
-    
-    /// Maximum bid amount.
-    private let maxBid = 28
-    
     /// Marriage bonus/penalty points.
     private let marriagePoints = 4
     
@@ -85,7 +79,7 @@ struct DefaultScoreCalculator: ScoreCalculator {
     
     /// Calculates points for a trick.
     func calculateTrickPoints(_ trick: Trick) -> Int {
-        calculateCardPoints(from: Array(trick.cards.values))
+        trick.totalPoints
     }
     
     /// Calculates team score for a round.
@@ -116,7 +110,7 @@ struct DefaultScoreCalculator: ScoreCalculator {
         }
         
         // Clamp to valid bid range
-        return max(minBid, min(maxBid, adjusted))
+        return adjusted.clamped(to: Bid.validRange)
     }
     
     /// Determines if bidding team won the round.
@@ -156,3 +150,10 @@ struct DefaultScoreCalculator: ScoreCalculator {
     }
 }
 
+// MARK: - Helpers
+
+private extension Comparable {
+    func clamped(to range: ClosedRange<Self>) -> Self {
+        min(max(self, range.lowerBound), range.upperBound)
+    }
+}

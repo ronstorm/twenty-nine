@@ -70,12 +70,6 @@ protocol RuleValidator: Sendable {
 
 /// Default implementation of RuleValidator.
 struct DefaultRuleValidator: RuleValidator {
-    /// Minimum bid amount.
-    private let minBid = 16
-    
-    /// Maximum bid amount.
-    private let maxBid = 28
-    
     /// Validates if a bid is legal.
     func isValidBid(
         _ bid: Int,
@@ -84,7 +78,7 @@ struct DefaultRuleValidator: RuleValidator {
         bidderPosition: Position
     ) -> Bool {
         // Check bid is within valid range
-        guard bid >= minBid && bid <= maxBid else {
+        guard Bid.isValidAmount(bid) else {
             return false
         }
         
@@ -173,12 +167,8 @@ struct DefaultRuleValidator: RuleValidator {
         totalBids: Int,
         cancelOn3PassesEnabled: Bool
     ) -> Bool {
-        // If cancel on 3 passes is enabled and first 3 players passed without any bid
-        if cancelOn3PassesEnabled && consecutivePasses >= 3 && totalBids == 0 {
-            return true
-        }
-        
-        return false
+        // Cancelled when the rule is on and the first 3 players passed without any bid
+        cancelOn3PassesEnabled && consecutivePasses >= 3 && totalBids == 0
     }
 }
 

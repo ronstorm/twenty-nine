@@ -123,30 +123,41 @@ struct CardDealerTests {
         }
     }
     
-    @Test("Deal cards distributes cards counter-clockwise")
+    @Test("Deal cards distributes cards counter-clockwise from dealer's right")
     func testDealCardsCounterClockwise() throws {
-        // Create a deck where we can track card order
-        var orderedDeck: [Card] = []
-        for i in 0..<16 {
-            let rank = Rank.allCases[i % Rank.allCases.count]
-            let suit = Suit.allCases[i % Suit.allCases.count]
-            orderedDeck.append(Card(rank: rank, suit: suit))
-        }
+        // Unshuffled deck, so we know exactly which card is dealt when
+        let deck = DefaultCardShuffler().createStandardDeck()
         
         let hands = try dealer.dealCards(
-            from: orderedDeck,
+            from: deck,
             to: players,
             startingFrom: .north,
             cardsPerPlayer: 4
         )
         
-        // If dealer is North, first card goes to East (dealer's right)
-        let eastHand = hands[players.first { $0.position == .east }!.id] ?? []
-        #expect(!eastHand.isEmpty)
+        // Dealer North: West (dealer's right) gets card 0, then South, East, North
+        let expectedOrder: [Position] = [.west, .south, .east, .north]
+        for (seat, position) in expectedOrder.enumerated() {
+            let player = try #require(players.first { $0.position == position })
+            let expectedHand = (0..<4).map { round in deck[round * 4 + seat] }
+            #expect(hands[player.id] == expectedHand, "Wrong hand for \(position)")
+        }
+    }
+    
+    @Test("Deal cards throws error when a seat is empty")
+    func testDealCardsMissingSeat() {
+        // Four players but two of them sit North, so West is empty
+        let players = [
+            Player(name: "North", type: .human, position: .north),
+            Player(name: "North 2", type: .human, position: .north),
+            Player(name: "East", type: .human, position: .east),
+            Player(name: "South", type: .human, position: .south)
+        ]
+        let deck = DefaultCardShuffler().createStandardDeck()
         
-        // Second card goes to South
-        let southHand = hands[players.first { $0.position == .south }!.id] ?? []
-        #expect(!southHand.isEmpty)
+        #expect(throws: DealingError.playerNotFound(position: .west)) {
+            try dealer.dealCards(from: deck, to: players, startingFrom: .north, cardsPerPlayer: 4)
+        }
     }
 }
 

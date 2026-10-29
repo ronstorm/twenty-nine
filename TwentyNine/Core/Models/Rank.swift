@@ -41,6 +41,20 @@ enum Rank: Int, CaseIterable, Codable, Sendable, Comparable {
         }
     }
     
+    /// Spoken name for the rank (e.g., "Jack"), for descriptions and VoiceOver.
+    var name: String {
+        switch self {
+        case .seven: return "Seven"
+        case .eight: return "Eight"
+        case .queen: return "Queen"
+        case .king: return "King"
+        case .ten: return "Ten"
+        case .ace: return "Ace"
+        case .nine: return "Nine"
+        case .jack: return "Jack"
+        }
+    }
+    
     /// Point value for this rank in the game.
     /// J=3, 9=2, A=1, 10=1, others=0
     var pointValue: Int {
